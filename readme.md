@@ -11,3 +11,11 @@
 必要なライブラリを追加する
 
     pipenv install bleak
+
+    pipenv install Nuitka
+
+## exe化
+
+以下コマンドを実行する
+
+    nuitka main.py --standalone
