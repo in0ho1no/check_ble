@@ -4,9 +4,17 @@ from bleak import BleakScanner
 
 
 async def main() -> None:
-    devices = await BleakScanner.discover()
-    for d in devices:
-        print(d)
+    async with BleakScanner() as scanner:
+        print("Scanning...")
+
+        n = 5
+        print(f"\n{n} advertisement packets:")
+        async for bd, ad in scanner.advertisement_data():
+            print(f" {n}. {bd!r} with {ad!r}")
+            n -= 1
+            if n == 0:
+                break
 
 
-asyncio.run(main())
+if __name__ == "__main__":
+    asyncio.run(main())
