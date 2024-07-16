@@ -1,0 +1,69 @@
+import asyncio
+
+from bleak import BleakClient, BleakScanner
+
+MODEL_NBR_UUID = "2A24"
+GAP_DEVICE_NAME = "2A00"
+
+
+async def scan_device(device_name_r: str) -> str:
+    """指定されたデバイスを検索する
+
+    Args:
+        device_name_r (str): 検索したいデバイス名を指定
+
+    Returns:
+        str: 見つかったBDアドレスを返す
+    """
+    bd_adrs_list: list[str] = []
+
+    async with BleakScanner() as scanner:
+        print("Scanning...")
+
+        n = 5
+        print(f"\nFind device with name longer than {n} characters...")
+        async for bd, ad in scanner.advertisement_data():
+            # 検出済みのBDアドレスは無視
+            if bd.address in bd_adrs_list:
+                continue
+
+            # 未検出のBDアドレスを処理する
+            bd_adrs_list.append(bd.address)
+
+            # 結果を出力する
+            found = len(bd.name or "") > n or len(ad.local_name or "") > n
+            print(f" Found{' it' if found else ''} {bd!r}")
+
+            # デバイス名を含まない場合何もしない
+            if found is not True:
+                continue
+
+            if device_name_r == bd.name:
+                print(f"Found: {device_name_r}, BDAddress:{bd.address}")
+                break
+
+    return bd.address
+
+
+async def connect_address(adrs_r: str) -> None:
+    """指定されたBDアドレスのデバイスと接続する
+
+    Args:
+        adrs_r (str): 接続したいBDアドレス
+    """
+    print("Connecting...")
+    async with BleakClient(adrs_r) as client:
+        model_number = await client.read_gatt_char(MODEL_NBR_UUID)
+        print(f'Model Number: {"".join(map(chr, model_number))}')
+
+        model_number = await client.read_gatt_char(GAP_DEVICE_NAME)
+        print(f'Model Number: {"".join(map(chr, model_number))}')
+
+
+async def main() -> None:
+    bdadrs = await scan_device("RTK5RLG140C")
+    await connect_address(bdadrs)
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
