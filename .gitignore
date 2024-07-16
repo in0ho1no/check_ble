@@ -2,5 +2,5 @@ __pycache__
 *.mypy_cache
 *.venv
 
-env
 *.dist
+/share/
