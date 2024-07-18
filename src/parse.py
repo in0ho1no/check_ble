@@ -1,4 +1,4 @@
-SRC_FILE_PATH = r"other_in\20240716_2_pc2fpb_2a24-2a00.psd"
+SRC_FILE_PATH = r"other_in\20240718_0_test.psd"
 
 
 class FieldCommon:
@@ -93,6 +93,7 @@ class PacketData:
         self.__set_payload_raw()
         self.__set_status_bytes()
         self.__set_crc()
+        self.__set_rssi()
 
     def __set_payload_len(self) -> None:
         """payload長として保持する"""
@@ -111,6 +112,12 @@ class PacketData:
         # payloadの末尾3byteがCRC
         crc_bytes = self.payload_raw_m[-3:]
         self.crc_m = hex(int.from_bytes(crc_bytes, "little"))
+
+    def __set_rssi(self) -> None:
+        """RSSIを保持する"""
+
+        # デバイスに応じた優良値(?)のようなものが存在する模様なので加味した値を保持する
+        self.rssi_m = -94 + self.status_bytes_raw_m[0]
 
     def set_timestamp(self, time_us: int) -> None:
         self.timestamp_m = time_us
