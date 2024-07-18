@@ -95,6 +95,7 @@ class PacketData:
         self.__set_crc()
         self.__set_rssi()
         self.__set_indicate_crc()
+        self.__set_access_adrs()
 
     def __set_payload_len(self) -> None:
         """payload長として保持する"""
@@ -112,7 +113,7 @@ class PacketData:
         """CRCを保持する"""
         # payloadの末尾3byteがCRC
         crc_bytes = self.payload_raw_m[-3:]
-        self.crc_m = hex(int.from_bytes(crc_bytes, "little"))
+        self.crc_m = hex(int.from_bytes(crc_bytes, "little")).upper()
 
     def __set_rssi(self) -> None:
         """RSSIを保持する"""
@@ -130,6 +131,11 @@ class PacketData:
             self.indicate_crc_m = True
         else:
             self.indicate_crc_m = False
+
+    def __set_access_adrs(self) -> None:
+        """Access Addressを保持する"""
+        adrs_bytes = self.fld_payload_m.data_m[1 : 1 + 4]
+        self.access_adrs_m = hex(int.from_bytes(adrs_bytes, "little")).upper()
 
     def set_timestamp(self, time_us: int) -> None:
         self.timestamp_m = time_us
