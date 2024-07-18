@@ -95,6 +95,7 @@ class PacketData:
         self.__set_crc()
         self.__set_rssi()
         self.__set_indicate_crc()
+        self.__set_channel()
         self.__set_access_adrs()
 
     def __set_payload_len(self) -> None:
@@ -131,6 +132,10 @@ class PacketData:
             self.indicate_crc_m = True
         else:
             self.indicate_crc_m = False
+
+    def __set_channel(self) -> None:
+        """channelを保持する"""
+        self.channel_m = self.status_bytes_raw_m[1] & 0x7F
 
     def __set_access_adrs(self) -> None:
         """Access Addressを保持する"""
