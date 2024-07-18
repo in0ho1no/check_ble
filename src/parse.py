@@ -94,6 +94,7 @@ class PacketData:
         self.__set_status_bytes()
         self.__set_crc()
         self.__set_rssi()
+        self.__set_indicate_crc()
 
     def __set_payload_len(self) -> None:
         """payload長として保持する"""
@@ -118,6 +119,17 @@ class PacketData:
 
         # デバイスに応じた優良値(?)のようなものが存在する模様なので加味した値を保持する
         self.rssi_m = -94 + self.status_bytes_raw_m[0]
+
+    def __set_indicate_crc(self) -> None:
+        """CRCの状態を保持する
+
+        True: OK
+        False: NG
+        """
+        if (self.status_bytes_raw_m[1] & 0x80) >> 7:
+            self.indicate_crc_m = True
+        else:
+            self.indicate_crc_m = False
 
     def set_timestamp(self, time_us: int) -> None:
         self.timestamp_m = time_us
