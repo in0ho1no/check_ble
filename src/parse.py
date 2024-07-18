@@ -7,11 +7,16 @@ class FieldCommon:
         self.mean_m = mean_r
         self.data_m = data_r
 
-    def get_bytes_data(
-        self,
-        bytes_data_r: bytes,
-        len_r: int = 0,
-    ) -> bytes:
+    def hold_data(self, bytes_data_r: bytes, len_r: int = 0) -> bytes:
+        """bytesデータから指定されたサイズだけ保持する
+
+        Args:
+            bytes_data_r (bytes): データを取得したいbytesデータ
+            len_r (int, optional): 保持したいサイズ。指定しない場合は0
+
+        Returns:
+            bytes: 引数で与えられたbytesデータのうち保持しなかった分のデータ
+        """
         if 0 == len_r:
             len = self.length_m
         else:
@@ -21,24 +26,35 @@ class FieldCommon:
         return bytes_data_r[len:]
 
 
-class FieldInfo(FieldCommon):
+class FieldInformation(FieldCommon):
     def __init__(self, len_r: int, mean_r: str, data_r: bytes = b"") -> None:
         super().__init__(len_r, mean_r, data_r)
 
 
-class FieldNo(FieldCommon):
+class FieldNumber(FieldCommon):
     def __init__(self, len_r: int, mean_r: str, data_r: bytes = b"") -> None:
         super().__init__(len_r, mean_r, data_r)
 
     def get_number(self) -> int:
+        """パケット番号を取得する
+
+        Returns:
+            int: パケット番号
+        """
         return int.from_bytes(self.data_m, "little")
 
 
-class FieldTime(FieldCommon):
+class FieldTimestamp(FieldCommon):
     def __init__(self, len_r: int, mean_r: str, data_r: bytes = b"") -> None:
         super().__init__(len_r, mean_r, data_r)
 
-    def get_time_us(self) -> int:
+    def get_timestamp_us(self) -> int:
+        """タイムスタンプを取得する
+
+        0起算ではないので注意
+        Returns:
+            int: 取得したタイムスタンプ[us]
+        """
         time_ms = int.from_bytes(self.data_m, "little")
         time_lo = time_ms & 0xFFFF
         time_hi = time_ms >> 16
@@ -47,11 +63,16 @@ class FieldTime(FieldCommon):
         return int(time_stamp_us)
 
 
-class FieldLen(FieldCommon):
+class FieldLength(FieldCommon):
     def __init__(self, len_r: int, mean_r: str, data_r: bytes = b"") -> None:
         super().__init__(len_r, mean_r, data_r)
 
     def get_length(self) -> int:
+        """Payload長を取得する
+
+        Returns:
+            int: Payload長
+        """
         return int.from_bytes(self.data_m, "little")
 
 
@@ -61,45 +82,49 @@ class FieldPayload(FieldCommon):
 
 
 class PacketData:
-    def __init__(self, info_r: FieldInfo, no_r: FieldNo, time_r: FieldTime, len_r: FieldLen, pay_r: FieldPayload) -> None:
-        self.pkt_info_m = info_r
-        self.pkt_no_m = no_r
-        self.pkt_time_m = time_r
-        self.pkt_len_m = len_r
-        self.pkt_payload_m = pay_r
+    def __init__(self, info_r: FieldInformation, no_r: FieldNumber, time_r: FieldTimestamp, len_r: FieldLength, pay_r: FieldPayload) -> None:
+        self.fld_info_m = info_r
+        self.fld_no_m = no_r
+        self.fld_time_m = time_r
+        self.fld_len_m = len_r
+        self.fld_payload_m = pay_r
 
     def set_timestamp(self, time_us: int) -> None:
         self.timestamp_m = time_us
-        print(time_us)
 
 
-with open(SRC_FILE_PATH, "rb") as f:
-    file_contents = f.read()
+def main() -> None:
+    with open(SRC_FILE_PATH, "rb") as f:
+        file_contents = f.read()
 
     cnt = 0
     base_time_us = 0
     psd_list: list[PacketData] = []
     while file_contents:
-        pkt_info = FieldInfo(1, "Packet_Information")
-        pkt_no = FieldNo(4, "Packet_Number")
-        pkt_time = FieldTime(8, "Timestamp_ms")
-        pkt_len = FieldLen(2, "PacketLength")
+        # フィールド単位で格納する
+        pkt_info = FieldInformation(1, "Packet_Information")
+        pkt_no = FieldNumber(4, "Packet_Number")
+        pkt_time = FieldTimestamp(8, "Timestamp_ms")
+        pkt_len = FieldLength(2, "PacketLength")
         pkt_payload = FieldPayload(256, "PayloadData")
 
-        file_contents = pkt_info.get_bytes_data(file_contents)
-        file_contents = pkt_no.get_bytes_data(file_contents)
-        file_contents = pkt_time.get_bytes_data(file_contents)
-        file_contents = pkt_len.get_bytes_data(file_contents)
-        file_contents = pkt_payload.get_bytes_data(file_contents)
+        file_contents = pkt_info.hold_data(file_contents)
+        file_contents = pkt_no.hold_data(file_contents)
+        file_contents = pkt_time.hold_data(file_contents)
+        file_contents = pkt_len.hold_data(file_contents)
+        file_contents = pkt_payload.hold_data(file_contents)
         pkt = PacketData(pkt_info, pkt_no, pkt_time, pkt_len, pkt_payload)
 
-        # タイムスタンプを正規化する
-        if cnt == 0:
-            base_time_us = pkt_time.get_time_us()
+        # タイムスタンプを0リセットする
+        if 0 == cnt:
+            base_time_us = pkt_time.get_timestamp_us()
+        pkt.set_timestamp(pkt_time.get_timestamp_us() - base_time_us)
 
-        pkt.set_timestamp(pkt_time.get_time_us() - base_time_us)
         psd_list.append(pkt)
-
         cnt += 1
 
     print(len(psd_list))
+
+
+if __name__ == "__main__":
+    main()
