@@ -89,6 +89,29 @@ class PacketData:
         self.fld_len_m = len_r
         self.fld_payload_m = pay_r
 
+        self.__set_payload_len()
+        self.__set_payload_raw()
+        self.__set_status_bytes()
+        self.__set_crc()
+
+    def __set_payload_len(self) -> None:
+        """payload長として保持する"""
+        self.payload_len_m = self.fld_len_m.get_length()
+
+    def __set_payload_raw(self) -> None:
+        """payloadをbytesデータのまま保持する"""
+        self.payload_raw_m = self.fld_payload_m.data_m[: self.payload_len_m - 2]
+
+    def __set_status_bytes(self) -> None:
+        """status bytesをbytesデータのまま保持する"""
+        self.status_bytes_raw_m = self.fld_payload_m.data_m[self.payload_len_m - 2 : self.payload_len_m]
+
+    def __set_crc(self) -> None:
+        """CRCを保持する"""
+        # payloadの末尾3byteがCRC
+        crc_bytes = self.payload_raw_m[-3:]
+        self.crc_m = hex(int.from_bytes(crc_bytes, "little"))
+
     def set_timestamp(self, time_us: int) -> None:
         self.timestamp_m = time_us
 
