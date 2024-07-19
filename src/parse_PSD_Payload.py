@@ -20,7 +20,7 @@ class Payload:
     def __set_access_adrs(self) -> None:
         """BLE Devices の Access Address を保持する"""
         adrs_bytes = self.raw_data_m[1 : 1 + 4]
-        self.access_adrs_m = hex(int.from_bytes(adrs_bytes, "little")).upper()
+        self.access_adrs_m = int.from_bytes(adrs_bytes, "little")
 
     def __set_ble_header(self) -> None:
         """BLE Devices の BLE Header を保持する"""

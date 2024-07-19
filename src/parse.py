@@ -1,3 +1,6 @@
+import io
+import logging
+
 from parse_PSD_head import FieldInformation as FInfo
 from parse_PSD_head import FieldLength as FLength
 from parse_PSD_head import FieldNumber as FNumber
@@ -7,6 +10,9 @@ from parse_PSD_Payload import Payload
 from parse_PSD_SB import StatusBytes
 
 SRC_FILE_PATH = r"other_in\20240716_2_pc2fpb_2a24-2a00.psd"
+
+ADVERTISING_PACKET_ACCESS_ADRS = 0x8E89BED6
+ADVERTISING_PACKET_CHANNEL_LIST = [37, 38, 39]
 
 
 class PacketData:
@@ -20,6 +26,8 @@ class PacketData:
         self.__set_payload()
         self.__set_status_bytes()
 
+        self.__set_pdu_type()
+
     def __set_payload(self) -> None:
         """payloadをbytesデータのまま保持する"""
         raw_data = self.fld_payload_w_sb_m.data_m[: self.fld_length_m.get_data() - 2]
@@ -29,6 +37,23 @@ class PacketData:
         """status bytesをbytesデータのまま保持する"""
         raw_data = self.fld_payload_w_sb_m.data_m[self.fld_length_m.get_data() - 2 : self.fld_length_m.get_data()]
         self.fld_status_bytes_m = StatusBytes(raw_data)
+
+    def __set_pdu_type(self) -> None:
+        if ADVERTISING_PACKET_ACCESS_ADRS == self.fld_payload_m.access_adrs_m:
+            if self.fld_status_bytes_m.channel_m in ADVERTISING_PACKET_CHANNEL_LIST:
+                # Access Address と Channelの両方を満足したとき Advertise Packet とみなす
+                pass
+            else:
+                # Channelが異なるので読み捨てる
+                print("Err")
+        else:
+            if self.fld_status_bytes_m.channel_m in ADVERTISING_PACKET_CHANNEL_LIST:
+                # Channelが異なるので読み捨てる
+                print("Err")
+            else:
+                # Access Address と Channelの両方を満足したとき DataPhys Packet とみなす
+                # logging.debug(f"Phy: {self.fld_payload_m.access_adrs_m}, {self.fld_status_bytes_m.channel_m}")
+                pass
 
     def set_timestamp(self, time_us: int) -> None:
         self.timestamp_m = time_us
@@ -68,7 +93,7 @@ def main() -> None:
 {pkt.fld_no_m.get_data()},\
 {pkt.timestamp_m},\
 {pkt.fld_status_bytes_m.channel_m},\
-{pkt.fld_payload_m.access_adrs_m},\
+{hex(pkt.fld_payload_m.access_adrs_m)},\
 {pkt.fld_status_bytes_m.rssi_m},\
 {pkt.fld_status_bytes_m.indicate_crc_m},\
 ")
@@ -79,5 +104,19 @@ def main() -> None:
     print(len(psd_list))
 
 
+# ログ用のstream用意
+log_stream = io.StringIO()
+
+# ログの設定
+logging.basicConfig(
+    stream=log_stream,
+    level=logging.DEBUG,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+
+
 if __name__ == "__main__":
     main()
+
+
+print(log_stream.getvalue())
