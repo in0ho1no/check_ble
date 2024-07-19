@@ -68,7 +68,7 @@ class FieldTimestamp(FieldCommon):
     def __init__(self, len_r: int, mean_r: str, data_r: bytes = b"") -> None:
         super().__init__(len_r, mean_r, data_r)
 
-    def get_timestamp_us(self) -> int:
+    def get_data(self) -> int:
         """タイムスタンプを取得する
 
         0起算ではないので注意

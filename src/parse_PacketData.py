@@ -1,5 +1,6 @@
 import logging
 
+from parse_adv_pdu import AdvertisePdu
 from parse_PSD_head import FieldInformation as FInfo
 from parse_PSD_head import FieldLength as FLength
 from parse_PSD_head import FieldNumber as FNumber
@@ -36,13 +37,22 @@ class PacketData:
         self.fld_status_bytes_m = StatusBytes(raw_data)
 
     def set_timestamp(self, time_us: int) -> None:
+        """0起算のタイムスタンプを保持する
+
+        Args:
+            time_us (int): 最初の受信したデータを基準点(0)としたタイムスタンプ
+        """
         self.timestamp_m = time_us
 
     def __set_pdu_type(self) -> None:
+        # CRCがエラーの場合、解析しても意味がないので何もせずに終了する
+        if self.fld_status_bytes_m.indicate_crc_m is False:
+            return
+
         if ADVERTISING_PACKET_ACCESS_ADRS == self.fld_payload_m.access_adrs_m:
             if self.fld_status_bytes_m.channel_m in ADVERTISING_PACKET_CHANNEL_LIST:
                 # Access Address と Channelの両方を満足したとき Advertise Packet とみなす
-                pass
+                AdvertisePdu(self.fld_payload_m.ble_header)
             else:
                 # Channelが異なるので読み捨てる
                 logging.warn("Err")
@@ -76,8 +86,8 @@ def get_packet_list(file_contents_r: bytes) -> list[PacketData]:
 
         # タイムスタンプを0リセットする
         if 0 == cnt:
-            base_time_us = pkt_time.get_timestamp_us()
-        pkt.set_timestamp(pkt_time.get_timestamp_us() - base_time_us)
+            base_time_us = pkt_time.get_data()
+        pkt.set_timestamp(pkt_time.get_data() - base_time_us)
 
         psd_list.append(pkt)
         cnt += 1
