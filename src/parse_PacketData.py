@@ -67,10 +67,15 @@ class PacketData:
 
 
 def get_packet_list(file_contents_r: bytes) -> list[PacketData]:
-    print("Getting...")
+    # パケット数を計算しておく
+    packet_size = FInfo.length_m + FNumber.length_m + FTimeStamp.length_m + FLength.length_m + FPayloadWSb.length_m
+    total_packet = int(len(file_contents_r) / packet_size)
+
     cnt = 0
     psd_list: list[PacketData] = []
     while file_contents_r:
+        print(f"\rGetting... {cnt:0{len(str(total_packet))}}:{total_packet}", end="")
+
         # フィールド単位で格納する
         pkt_info = FInfo()
         pkt_no = FNumber()
@@ -93,4 +98,5 @@ def get_packet_list(file_contents_r: bytes) -> list[PacketData]:
         psd_list.append(pkt)
         cnt += 1
 
+    print(f"\rCompleted! {cnt}:{total_packet}")
     return psd_list
