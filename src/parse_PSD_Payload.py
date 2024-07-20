@@ -34,3 +34,11 @@ class Payload:
         """BLE Devices の CRC を保持する"""
         crc_bytes = self.raw_data_m[-3:]
         self.crc_m = hex(int.from_bytes(crc_bytes, "little")).upper()
+
+    def get_ble_payload_hex(self) -> str:
+        """payload情報を16進文字列で取得する
+
+        Returns:
+            str: カンマで区切られた16進文字列のpayload情報
+        """
+        return ",".join([f"{byte:02x}" for byte in self.ble_payload])

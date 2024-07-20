@@ -4,50 +4,36 @@
 class FieldCommon:
     """パケット内に共通するフィールドの情報"""
 
-    def __init__(self, len_r: int, mean_r: str, data_r: bytes = b"") -> None:
-        self.length_m = len_r
-        self.mean_m = mean_r
-        self.data_m = data_r
+    def __init__(self, length_r: int, meaning_r: str) -> None:
+        self.length_m = length_r
+        self.mean_m = meaning_r
+        self.data_m: bytes = b""
 
-    def hold_data(self, bytes_data_r: bytes, len_r: int = 0) -> bytes:
-        """bytesデータから指定されたサイズだけ保持する
+    def hold_data(self, bytes_data_r: bytes) -> bytes:
+        """bytesデータからフィールドに応じたデータを保持する
 
         Args:
             bytes_data_r (bytes): データを取得したいbytesデータ
-            len_r (int, optional): 保持したいサイズ。指定しない場合は0
 
         Returns:
             bytes: 引数で与えられたbytesデータのうち保持しなかった分のデータ
         """
-        if 0 == len_r:
-            len = self.length_m
-        else:
-            len = len_r
-
-        self.data_m = bytes_data_r[0:len]
-        return bytes_data_r[len:]
+        self.data_m = bytes_data_r[: self.length_m]
+        return bytes_data_r[self.length_m :]
 
 
 class FieldInformation(FieldCommon):
-    """Packet Information フィールド固有の情報
+    """Packet Information フィールド固有の情報"""
 
-    Args:
-        FieldCommon (): パケット内に共通するフィールドの情報
-    """
-
-    def __init__(self, len_r: int, mean_r: str, data_r: bytes = b"") -> None:
-        super().__init__(len_r, mean_r, data_r)
+    def __init__(self) -> None:
+        super().__init__(1, "Packet_Information")
 
 
 class FieldNumber(FieldCommon):
-    """Packet Number フィールド固有の情報
+    """Packet Number フィールド固有の情報"""
 
-    Args:
-        FieldCommon (): パケット内に共通するフィールドの情報
-    """
-
-    def __init__(self, len_r: int, mean_r: str, data_r: bytes = b"") -> None:
-        super().__init__(len_r, mean_r, data_r)
+    def __init__(self) -> None:
+        super().__init__(4, "Packet_Number")
 
     def get_data(self) -> int:
         """パケット番号を取得する
@@ -59,14 +45,10 @@ class FieldNumber(FieldCommon):
 
 
 class FieldTimestamp(FieldCommon):
-    """Timestamp フィールド固有の情報
+    """Timestamp フィールド固有の情報"""
 
-    Args:
-        FieldCommon (): パケット内に共通するフィールドの情報
-    """
-
-    def __init__(self, len_r: int, mean_r: str, data_r: bytes = b"") -> None:
-        super().__init__(len_r, mean_r, data_r)
+    def __init__(self) -> None:
+        super().__init__(8, "Timestamp_ms")
 
     def get_data(self) -> int:
         """タイムスタンプを取得する
@@ -84,14 +66,10 @@ class FieldTimestamp(FieldCommon):
 
 
 class FieldLength(FieldCommon):
-    """Length フィールド固有の情報
+    """Length フィールド固有の情報"""
 
-    Args:
-        FieldCommon (): パケット内に共通するフィールドの情報
-    """
-
-    def __init__(self, len_r: int, mean_r: str, data_r: bytes = b"") -> None:
-        super().__init__(len_r, mean_r, data_r)
+    def __init__(self) -> None:
+        super().__init__(2, "PacketLength")
 
     def get_data(self) -> int:
         """Payload+StatusBytes長を取得する
@@ -103,11 +81,7 @@ class FieldLength(FieldCommon):
 
 
 class FieldPayloadWStatusbytes(FieldCommon):
-    """Payload フィールド固有の情報
+    """Payload フィールド固有の情報"""
 
-    Args:
-        FieldCommon (): パケット内に共通するフィールドの情報
-    """
-
-    def __init__(self, len_r: int, mean_r: str, data_r: bytes = b"") -> None:
-        super().__init__(len_r, mean_r, data_r)
+    def __init__(self) -> None:
+        super().__init__(256, "PayloadData")

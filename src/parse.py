@@ -15,6 +15,18 @@ def main() -> None:
     packet_list = parse_PacketData.get_packet_list(file_contents)
     logging.info(f"Packet Count {len(packet_list)}")
 
+    for packet in packet_list:
+        # 結果出力
+        print(f"\
+{packet.fld_no_m.get_data()},\
+{packet.timestamp_m},\
+{packet.fld_status_bytes_m.channel_m},\
+{hex(packet.fld_payload_m.access_adrs_m)},\
+{packet.fld_status_bytes_m.rssi_m},\
+{packet.fld_status_bytes_m.indicate_crc_m},\
+{packet.fld_payload_m.get_ble_payload_hex()},\
+")
+
 
 # ログ用のstream用意
 log_stream = io.StringIO()

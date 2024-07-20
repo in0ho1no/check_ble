@@ -67,15 +67,16 @@ class PacketData:
 
 
 def get_packet_list(file_contents_r: bytes) -> list[PacketData]:
+    print("Getting...")
     cnt = 0
     psd_list: list[PacketData] = []
     while file_contents_r:
         # フィールド単位で格納する
-        pkt_info = FInfo(1, "Packet_Information")
-        pkt_no = FNumber(4, "Packet_Number")
-        pkt_time = FTimeStamp(8, "Timestamp_ms")
-        pkt_len = FLength(2, "PacketLength")
-        pkt_payload = FPayloadWSb(256, "PayloadData")
+        pkt_info = FInfo()
+        pkt_no = FNumber()
+        pkt_time = FTimeStamp()
+        pkt_len = FLength()
+        pkt_payload = FPayloadWSb()
 
         file_contents_r = pkt_info.hold_data(file_contents_r)
         file_contents_r = pkt_no.hold_data(file_contents_r)
@@ -91,15 +92,5 @@ def get_packet_list(file_contents_r: bytes) -> list[PacketData]:
 
         psd_list.append(pkt)
         cnt += 1
-
-        # 結果出力
-        print(f"\
-{pkt.fld_no_m.get_data()},\
-{pkt.timestamp_m},\
-{pkt.fld_status_bytes_m.channel_m},\
-{hex(pkt.fld_payload_m.access_adrs_m)},\
-{pkt.fld_status_bytes_m.rssi_m},\
-{pkt.fld_status_bytes_m.indicate_crc_m},\
-")
 
     return psd_list
