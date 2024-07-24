@@ -54,8 +54,20 @@ async def connect_device(device_r: BLEDevice) -> None:
     Args:
         adrs_r (str): 接続したいBDアドレス
     """
+
+    def handle_disconnect(_: BleakClient) -> None:
+        print("Device was disconnected, goodbye.")
+        for task in asyncio.all_tasks():
+            try:
+                task.cancel()
+            except asyncio.exceptions.CancelledError:
+                logging.warn("タスク中断: handle_disconnect")
+
     print("Connecting...")
-    async with BleakClient(device_r) as client:
+    async with BleakClient(
+        device_r,
+        disconnected_callback=handle_disconnect,
+    ) as client:
         model_number = await client.read_gatt_char(MODEL_NBR_UUID)
         print(f'Model Number: {"".join(map(chr, model_number))}')
 
@@ -80,7 +92,10 @@ logging.basicConfig(
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except asyncio.exceptions.CancelledError:
+        logging.warn("タスク中断: main")
 
 
 # ログ出力
