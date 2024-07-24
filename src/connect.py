@@ -3,19 +3,20 @@ import io
 import logging
 
 from bleak import BleakClient, BleakScanner
+from bleak.backends.device import BLEDevice
 
 MODEL_NBR_UUID = "2A24"
 GAP_DEVICE_NAME = "2A00"
 
 
-async def scan_device(device_name_r: str) -> str:
+async def scan_device(device_name_r: str) -> BLEDevice:
     """指定されたデバイスを検索する
 
     Args:
         device_name_r (str): 検索したいデバイス名を指定
 
     Returns:
-        str: 見つかったBDアドレスを返す
+        BLEDevice: BLEDevice情報を返す
     """
     bd_adrs_list: list[str] = []
 
@@ -44,17 +45,17 @@ async def scan_device(device_name_r: str) -> str:
                 print(f"Found: {device_name_r}, BDAddress:{bd.address}")
                 break
 
-    return bd.address
+    return bd
 
 
-async def connect_address(adrs_r: str) -> None:
+async def connect_device(device_r: BLEDevice) -> None:
     """指定されたBDアドレスのデバイスと接続する
 
     Args:
         adrs_r (str): 接続したいBDアドレス
     """
     print("Connecting...")
-    async with BleakClient(adrs_r) as client:
+    async with BleakClient(device_r) as client:
         model_number = await client.read_gatt_char(MODEL_NBR_UUID)
         print(f'Model Number: {"".join(map(chr, model_number))}')
 
@@ -63,8 +64,8 @@ async def connect_address(adrs_r: str) -> None:
 
 
 async def main() -> None:
-    bdadrs = await scan_device("RTK5RLG140C")
-    await connect_address(bdadrs)
+    device = await scan_device("RTK5RLG140C")
+    await connect_device(device)
 
 
 # ログ用のstream用意
