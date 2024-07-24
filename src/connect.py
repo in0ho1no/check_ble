@@ -1,4 +1,6 @@
 import asyncio
+import io
+import logging
 
 from bleak import BleakClient, BleakScanner
 
@@ -65,5 +67,20 @@ async def main() -> None:
     await connect_address(bdadrs)
 
 
+# ログ用のstream用意
+log_stream = io.StringIO()
+
+# ログの設定
+logging.basicConfig(
+    stream=log_stream,
+    level=logging.DEBUG,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+)
+
+
 if __name__ == "__main__":
     asyncio.run(main())
+
+
+# ログ出力
+print(log_stream.getvalue())
