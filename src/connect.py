@@ -52,16 +52,14 @@ async def connect_device(device_r: BLEDevice) -> None:
     """指定されたBDアドレスのデバイスと接続する
 
     Args:
-        adrs_r (str): 接続したいBDアドレス
+        device_r (BLEDevice): 接続したいBLEDevice
     """
 
     def handle_disconnect(_: BleakClient) -> None:
+        # 実行中のタスクを中断して終了する
         print("Device was disconnected, goodbye.")
         for task in asyncio.all_tasks():
-            try:
-                task.cancel()
-            except asyncio.exceptions.CancelledError:
-                logging.warn("タスク中断: handle_disconnect")
+            task.cancel()
 
     print("Connecting...")
     async with BleakClient(
@@ -76,8 +74,13 @@ async def connect_device(device_r: BLEDevice) -> None:
 
 
 async def main() -> None:
+    # 接続対象のスキャン
     device = await scan_device("RTK5RLG140C")
-    await connect_device(device)
+    # 対象と接続
+    try:
+        await connect_device(device)
+    except asyncio.exceptions.CancelledError:
+        logging.warning("タスク中断")
 
 
 # ログ用のstream用意
@@ -92,10 +95,7 @@ logging.basicConfig(
 
 
 if __name__ == "__main__":
-    try:
-        asyncio.run(main())
-    except asyncio.exceptions.CancelledError:
-        logging.warn("タスク中断: main")
+    asyncio.run(main())
 
 
 # ログ出力
