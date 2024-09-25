@@ -76,7 +76,7 @@ async def connect_device(device_r: BLEDevice) -> None:
                 print(f"  Characteristic: {char.uuid}, Handle: {char.handle}")
 
                 read_data = await client.read_gatt_char(char.handle, use_cached=True)
-                print(f'Test: {"".join(map(chr, read_data))}')
+                print(f'      Test: {"".join(map(chr, read_data))}')
 
 
 async def main() -> None:
