@@ -7,9 +7,6 @@ from bleak.backends.device import BLEDevice
 
 from read_setting import SimSetting
 
-MODEL_NBR_UUID = "2A24"
-GAP_DEVICE_NAME = "2A00"
-
 
 async def scan_device(bd_addr_r: str) -> BLEDevice:
     """指定されたデバイスを検索する
@@ -67,12 +64,19 @@ async def connect_device(device_r: BLEDevice) -> None:
     async with BleakClient(
         device_r,
         disconnected_callback=handle_disconnect,
+        winrt={"use_cached_services": True},
     ) as client:
-        model_number = await client.read_gatt_char(MODEL_NBR_UUID)
-        print(f'Model Number: {"".join(map(chr, model_number))}')
+        # デバイスの全サービスとCharacteristicを取得
+        services = await client.get_services()
 
-        model_number = await client.read_gatt_char(GAP_DEVICE_NAME)
-        print(f'Model Number: {"".join(map(chr, model_number))}')
+        # サービスとCharacteristicを表示
+        for service in services:
+            print(f"Service: {service.uuid}")
+            for char in service.characteristics:
+                print(f"  Characteristic: {char.uuid}, Handle: {char.handle}")
+
+                read_data = await client.read_gatt_char(char.handle, use_cached=True)
+                print(f'Test: {"".join(map(chr, read_data))}')
 
 
 async def main() -> None:
