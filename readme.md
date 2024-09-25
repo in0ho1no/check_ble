@@ -14,6 +14,8 @@
 
     pipenv install Nuitka
 
+    pipenv install pyyaml
+
 ## exe化
 
 以下コマンドを実行する

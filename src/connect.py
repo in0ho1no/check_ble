@@ -5,15 +5,17 @@ import logging
 from bleak import BleakClient, BleakScanner
 from bleak.backends.device import BLEDevice
 
+from read_setting import SimSetting
+
 MODEL_NBR_UUID = "2A24"
 GAP_DEVICE_NAME = "2A00"
 
 
-async def scan_device(device_name_r: str) -> BLEDevice:
+async def scan_device(bd_addr_r: str) -> BLEDevice:
     """指定されたデバイスを検索する
 
     Args:
-        device_name_r (str): 検索したいデバイス名を指定
+        bd_addr_r (str): 検索したいBDアドレスを指定
 
     Returns:
         BLEDevice: BLEDevice情報を返す
@@ -41,8 +43,8 @@ async def scan_device(device_name_r: str) -> BLEDevice:
             if found is not True:
                 continue
 
-            if device_name_r == bd.name:
-                print(f"Found: {device_name_r}, BDAddress:{bd.address}")
+            if bd_addr_r == bd.address:
+                print(f"Found: {bd.name}, BDAddress:{bd.address}")
                 break
 
     return bd
@@ -74,8 +76,11 @@ async def connect_device(device_r: BLEDevice) -> None:
 
 
 async def main() -> None:
+    sim_setting = SimSetting()
+    sim_setting.read_setting()
+
     # 接続対象のスキャン
-    device = await scan_device("RTK5RLG140C")
+    device = await scan_device(sim_setting.get_bd_adrs())
     # 対象と接続
     try:
         await connect_device(device)
