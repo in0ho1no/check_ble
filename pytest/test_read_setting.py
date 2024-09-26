@@ -1,12 +1,16 @@
 import os
 import sys
+from typing import Any
+from unittest.mock import mock_open, patch
+
+import yaml  # type: ignore
 
 import pytest
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "..//src"))
 
 
-from read_setting import is_hex
+from read_setting import SimSetting, is_hex  # type: ignore
 
 
 # Trueを期待するテストケース
@@ -47,6 +51,52 @@ def test_is_hex_true(input_str: str) -> None:
 )
 def test_is_hex_false(input_str: str) -> None:
     assert is_hex(input_str) is False
+
+
+# BDアドレスが有効な場合のテストケース
+@pytest.mark.parametrize(
+    "bd_address, expected_result",
+    [
+        ("01:23:45:67:89:AB", "01:23:45:67:89:AB"),  # 正しい形式
+        ("11:22:33:44:55:66", "11:22:33:44:55:66"),  # 正しい形式
+        ("AA:BB:CC:DD:EE:FF", "AA:BB:CC:DD:EE:FF"),  # 正しい形式
+    ],
+)
+def test_valid_bd_adrs(bd_address: str, expected_result: str) -> None:
+    # SimSetting インスタンスを作成
+    sim_setting = SimSetting()
+
+    # read_setting を実行
+    mock_yaml_data = yaml.dump({"info": {"bdaddress": bd_address}})
+    with patch("builtins.open", mock_open(read_data=mock_yaml_data)):
+        sim_setting.read_setting()
+
+    # BDアドレスが空文字であることを確認
+    assert sim_setting.get_bd_adrs() == expected_result
+
+
+# BDアドレスが無効な場合のテストケース
+@pytest.mark.parametrize(
+    "invalid_bd_address",
+    [
+        "01:23:45:67:89",  # 不足している
+        "01:23:45:67:89:GH",  # 16進数でない文字が含まれる
+        "0123456789AB",  # コロンで区切られていない
+        "01:23:45:67:89:ABC",  # 区切られている文字列が2文字以上の部分がある
+        "01:23:45:67:89:AB:CD",  # 余分な部分がある
+    ],
+)
+def test_invalid_bd_adrs(invalid_bd_address: str) -> None:
+    # SimSetting インスタンスを作成
+    sim_setting = SimSetting()
+
+    # read_setting を実行
+    mock_yaml_data = yaml.dump({"info": {"bdaddress": invalid_bd_address}})
+    with patch("builtins.open", mock_open(read_data=mock_yaml_data)):
+        sim_setting.read_setting()
+
+    # BDアドレスが空文字であることを確認
+    assert sim_setting.get_bd_adrs() == ""
 
 
 # pytestを使ったテストの実行

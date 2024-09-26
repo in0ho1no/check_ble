@@ -1,6 +1,6 @@
 import re
 
-import yaml
+import yaml  # type: ignore
 
 
 def is_hex(chk_r: str) -> bool:
@@ -29,9 +29,6 @@ class SimSetting:
 
     def read_setting(self) -> None:
         """設定ファイルを読み込む"""
-        import os
-
-        print(os.getcwd())
         with open(self.FILE_NAME_SETTING) as f:
             data_rd = yaml.safe_load(f)
 
@@ -51,14 +48,18 @@ class SimSetting:
             return ""
 
         split_bd_adrs = chk_r.split(self.SEP_BD_ADRS)
-        if len(split_bd_adrs) != 6:
-            print("エラー: 設定ファイル: BDアドレスは12文字で指定してください。")
-            return ""
-
         for split_text in split_bd_adrs:
+            if 2 != len(split_text):
+                print(f"エラー: 設定ファイル: BDアドレスは2文字ずつ{self.SEP_BD_ADRS}で区切ってください。")
+                return ""
+
             if is_hex(split_text) is False:
                 print("エラー: 設定ファイル: BDアドレスは16進文字列で指定してください。")
                 return ""
+
+        if len(split_bd_adrs) != 6:
+            print("エラー: 設定ファイル: BDアドレスは12文字で指定してください。")
+            return ""
 
         return chk_r
 

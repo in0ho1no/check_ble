@@ -30,7 +30,6 @@
 			"--warn-return-any",			// 戻り値を明示する
 			"--disallow-untyped-defs",		// 戻り値の型を明示する
 			"--no-implicit-optional",		// 型を明示した変数にNoneの代入禁止
-			"--ignore-missing-imports",		// 型ヒントのないライブラリをimportしてもエラーにしない
 		],
 		"mypy-type-checker.ignorePatterns": [
 			"docs/source/conf.py",
