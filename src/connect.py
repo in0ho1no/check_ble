@@ -4,6 +4,7 @@ import logging
 
 from bleak import BleakClient, BleakScanner
 from bleak.backends.device import BLEDevice
+from bleak.exc import BleakError
 
 from read_setting import SimSetting
 
@@ -75,8 +76,17 @@ async def connect_device(device_r: BLEDevice) -> None:
             for char in service.characteristics:
                 print(f"  Characteristic: {char.uuid}, Handle: {char.handle}")
 
+                if (22 == char.handle) or (24 == char.handle):
+                    # エラーになるコードを弾く
+                    continue
+
                 read_data = await client.read_gatt_char(char.handle, use_cached=True)
                 print(f'      Test: {"".join(map(chr, read_data))}')
+
+        data = b"\x01\x00"
+        # response=None もしくは True だと write req
+        # response=False だと write command
+        await client.write_gatt_char(22, data, response=True)
 
 
 async def main() -> None:
@@ -93,6 +103,10 @@ async def main() -> None:
         await connect_device(device)
     except asyncio.exceptions.CancelledError:
         logging.warning("タスク中断")
+    except asyncio.exceptions.TimeoutError:
+        logging.warning("タスクタイムアウト")
+    except BleakError as e:
+        logging.warning(f"BleakError: {e}")
 
 
 # ログ用のstream用意
