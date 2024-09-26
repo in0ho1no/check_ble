@@ -82,9 +82,12 @@ async def connect_device(device_r: BLEDevice) -> None:
 async def main() -> None:
     sim_setting = SimSetting()
     sim_setting.read_setting()
+    bd_adrs = sim_setting.get_bd_adrs()
+    if "" == bd_adrs:
+        return
 
     # 接続対象のスキャン
-    device = await scan_device(sim_setting.get_bd_adrs())
+    device = await scan_device(bd_adrs)
     # 対象と接続
     try:
         await connect_device(device)
