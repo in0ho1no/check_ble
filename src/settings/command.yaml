@@ -1,0 +1,4 @@
+read:
+  - func: "AAA"
+    name: "BBB"
+    handle: 0

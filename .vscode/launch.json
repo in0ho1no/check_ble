@@ -5,7 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python デバッガー: connect",
+            "name": "現在のファイル",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${file}",
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "connect",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}\\src\\connect.py",

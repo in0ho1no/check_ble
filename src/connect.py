@@ -6,9 +6,11 @@ from bleak import BleakClient, BleakScanner
 from bleak.backends.device import BLEDevice
 from bleak.exc import BleakError
 
+from read_command import SimCommand
 from read_setting import SimSetting
 
 FILE_NAME_SETTING = r"./settings/setting.yaml"
+FILE_NAME_COMMAND = r"./settings/command.yaml"
 
 
 async def scan_device(bd_addr_r: str) -> BLEDevice:
@@ -85,7 +87,12 @@ async def connect_device(device_r: BLEDevice) -> None:
         winrt={"use_cached_services": True},
     ) as client:
         print("Connected")
-        show_client_info(client)
+        # show_client_info(client)
+        cmnd = SimCommand(FILE_NAME_COMMAND)
+
+        for rd in cmnd.read_data_list:
+            rd.rcv_data = await client.read_gatt_char(rd.handle, use_cached=True)
+            print(f'  {rd.name}: {"".join(map(chr, rd.rcv_data))}')
 
         print("Diconnect...")
         await client.disconnect()
