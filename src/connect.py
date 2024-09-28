@@ -98,11 +98,16 @@ async def connect_device(device_r: BLEDevice) -> None:
         await client.disconnect()
 
 
-async def main() -> None:
+async def main() -> bool:
+    """Bleakメイン処理
+
+    Returns:
+        bool: True: 再度実行する, False: 終了する
+    """
     sim_setting = SimSetting(FILE_NAME_SETTING)
     bd_adrs = sim_setting.get_bd_adrs()
     if "" == bd_adrs:
-        return
+        return False
 
     # 接続対象のスキャン
     device = await scan_device(bd_adrs)
@@ -111,10 +116,15 @@ async def main() -> None:
         await connect_device(device)
     except asyncio.exceptions.CancelledError:
         logging.warning("タスク中断")
+        return False
     except asyncio.exceptions.TimeoutError:
         logging.warning("タスクタイムアウト")
+        return True
     except BleakError as e:
         logging.warning(f"BleakError: {e}")
+        return True
+
+    return False
 
 
 # ログ用のstream用意
@@ -129,7 +139,9 @@ logging.basicConfig(
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    retry = True
+    while retry is True:
+        retry = asyncio.run(main())
 
 
 # ログ出力
