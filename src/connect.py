@@ -48,6 +48,21 @@ async def scan_device(bd_addr_r: str) -> BLEDevice:
     return bd
 
 
+def show_client_info(client_r: BleakClient) -> None:
+    """接続先から取得できる情報を表示する
+
+    Args:
+        client_r (BleakClient): 情報表示したい接続先
+    """
+    print(f"MTU size{client_r.mtu_size}")
+
+    # サービスとCharacteristicを表示
+    for service in client_r.services:
+        print(f"Service: {service.uuid}")
+        for char in service.characteristics:
+            print(f"  Characteristic: {char.uuid}, Handle: {char.handle}")
+
+
 async def connect_device(device_r: BLEDevice) -> None:
     """指定されたBDアドレスのデバイスと接続する
 
@@ -67,26 +82,11 @@ async def connect_device(device_r: BLEDevice) -> None:
         disconnected_callback=handle_disconnect,
         winrt={"use_cached_services": True},
     ) as client:
-        # デバイスの全サービスとCharacteristicを取得
-        services = await client.get_services()
+        print("Connected")
+        show_client_info(client)
 
-        # サービスとCharacteristicを表示
-        for service in services:
-            print(f"Service: {service.uuid}")
-            for char in service.characteristics:
-                print(f"  Characteristic: {char.uuid}, Handle: {char.handle}")
-
-                if (22 == char.handle) or (24 == char.handle):
-                    # エラーになるコードを弾く
-                    continue
-
-                read_data = await client.read_gatt_char(char.handle, use_cached=True)
-                print(f'      Test: {"".join(map(chr, read_data))}')
-
-        data = b"\x01\x00"
-        # response=None もしくは True だと write req
-        # response=False だと write command
-        await client.write_gatt_char(22, data, response=True)
+        print("Diconnect...")
+        await client.disconnect()
 
 
 async def main() -> None:
