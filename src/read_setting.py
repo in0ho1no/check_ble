@@ -18,7 +18,7 @@ def is_hex(chk_r: str) -> bool:
 class SimSetting:
     """設定ファイルから読み込んだ情報を保持する"""
 
-    FILE_NAME_SETTING = r"setting.yaml"
+    FILE_NAME_SETTING = r"./settings/setting.yaml"
     KEY_INFO = "info"
     KEY_BD_ADRS = "bdaddress"
 
