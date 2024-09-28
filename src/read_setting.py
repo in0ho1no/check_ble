@@ -18,18 +18,18 @@ def is_hex(chk_r: str) -> bool:
 class SimSetting:
     """設定ファイルから読み込んだ情報を保持する"""
 
-    FILE_NAME_SETTING = r"./settings/setting.yaml"
     KEY_INFO = "info"
     KEY_BD_ADRS = "bdaddress"
 
     SEP_BD_ADRS = ":"
 
-    def __init__(self) -> None:
-        self.__bd_adrs_m: str = ""
+    def __init__(self, filepath_r: str) -> None:
+        self.filepath_m = filepath_r
+        self.read_setting()
 
     def read_setting(self) -> None:
         """設定ファイルを読み込む"""
-        with open(self.FILE_NAME_SETTING) as f:
+        with open(self.filepath_m) as f:
             data_rd = yaml.safe_load(f)
 
             self.__bd_adrs_m = self.__chk_bd_adrs(data_rd[self.KEY_INFO][self.KEY_BD_ADRS])

@@ -12,6 +12,8 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "..//src"))
 
 from read_setting import SimSetting, is_hex  # type: ignore
 
+FILE_NAME_SETTING = r"./src/settings/setting.yaml"
+
 
 # Trueを期待するテストケース
 @pytest.mark.parametrize(
@@ -64,7 +66,7 @@ def test_is_hex_false(input_str: str) -> None:
 )
 def test_valid_bd_adrs(bd_address: str, expected_result: str) -> None:
     # SimSetting インスタンスを作成
-    sim_setting = SimSetting()
+    sim_setting = SimSetting(FILE_NAME_SETTING)
 
     # read_setting を実行
     mock_yaml_data = yaml.dump({"info": {"bdaddress": bd_address}})
@@ -88,7 +90,7 @@ def test_valid_bd_adrs(bd_address: str, expected_result: str) -> None:
 )
 def test_invalid_bd_adrs(invalid_bd_address: str) -> None:
     # SimSetting インスタンスを作成
-    sim_setting = SimSetting()
+    sim_setting = SimSetting(FILE_NAME_SETTING)
 
     # read_setting を実行
     mock_yaml_data = yaml.dump({"info": {"bdaddress": invalid_bd_address}})

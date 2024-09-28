@@ -8,6 +8,8 @@ from bleak.exc import BleakError
 
 from read_setting import SimSetting
 
+FILE_NAME_SETTING = r"./settings/setting.yaml"
+
 
 async def scan_device(bd_addr_r: str) -> BLEDevice:
     """指定されたデバイスを検索する
@@ -90,8 +92,7 @@ async def connect_device(device_r: BLEDevice) -> None:
 
 
 async def main() -> None:
-    sim_setting = SimSetting()
-    sim_setting.read_setting()
+    sim_setting = SimSetting(FILE_NAME_SETTING)
     bd_adrs = sim_setting.get_bd_adrs()
     if "" == bd_adrs:
         return
