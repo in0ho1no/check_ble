@@ -20,6 +20,21 @@ class ReadData:
         self.rcv_data = ""
 
 
+class DetailData:
+    KEY_DETAIL_TYPE = "type"
+    KEY_DETAIL_HEAD = "head"
+    KEY_DETAIL_BODY = "body"
+
+    detail_type: int
+    detail_head: list[int]
+    detail_body: list[int]
+
+    def __init__(self, detail_data_r: dict) -> None:
+        self.detail_type = detail_data_r[self.KEY_DETAIL_TYPE]
+        self.detail_head = detail_data_r[self.KEY_DETAIL_HEAD]
+        self.detail_body = detail_data_r[self.KEY_DETAIL_BODY]
+
+
 class WriteData:
     KEY_CMND_NAME = "cmnd_name"
     KEY_CMND_TYPE = "cmnd_type"
@@ -27,27 +42,21 @@ class WriteData:
     KEY_HNDL_NOTIFY = "handle_notify"
 
     KEY_DETAIL = "detail"
-    KEY_DETAIL_TYPE = "type"
-    KEY_DETAIL_HEAD = "head"
-    KEY_DETAIL_BODY = "body"
 
     cmnd_name: str
     cmnd_type: int
     handle_write: int
     handle_notify: int
-    detail_type: int
-    detail_head: list[int]
-    detail_body: list[int]
+    detali_list: list[DetailData]
 
     def __init__(self, write_data_r: dict) -> None:
         self.cmnd_name = write_data_r[self.KEY_CMND_NAME]
         self.cmnd_type = write_data_r[self.KEY_CMND_TYPE]
         self.handle_write = write_data_r[self.KEY_HNDL_WRITE]
         self.handle_notify = write_data_r[self.KEY_HNDL_NOTIFY]
+        self.detali_list = []
         for detail in write_data_r[self.KEY_DETAIL]:
-            self.detail_type = detail[self.KEY_DETAIL_TYPE]
-            self.detail_head = detail[self.KEY_DETAIL_HEAD]
-            self.detail_body = detail[self.KEY_DETAIL_BODY]
+            self.detali_list.append(DetailData(detail))
 
 
 class SimCommand:
