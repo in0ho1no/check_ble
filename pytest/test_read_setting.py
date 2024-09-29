@@ -15,6 +15,11 @@ from read_setting import SimSetting, is_hex  # type: ignore
 FILE_NAME_SETTING = r"./src/settings/setting.yaml"
 
 
+@pytest.fixture
+def sim_setting() -> SimSetting:
+    return SimSetting(FILE_NAME_SETTING)
+
+
 # Trueを期待するテストケース
 @pytest.mark.parametrize(
     "input_str",
@@ -64,10 +69,7 @@ def test_is_hex_false(input_str: str) -> None:
         ("AA:BB:CC:DD:EE:FF", "AA:BB:CC:DD:EE:FF"),  # 正しい形式
     ],
 )
-def test_valid_bd_adrs(bd_address: str, expected_result: str) -> None:
-    # SimSetting インスタンスを作成
-    sim_setting = SimSetting(FILE_NAME_SETTING)
-
+def test_valid_bd_adrs(sim_setting: SimSetting, bd_address: str, expected_result: str) -> None:
     # read_setting を実行
     mock_yaml_data = yaml.dump({"info": {"bdaddress": bd_address}})
     with patch("builtins.open", mock_open(read_data=mock_yaml_data)):
@@ -88,10 +90,7 @@ def test_valid_bd_adrs(bd_address: str, expected_result: str) -> None:
         "01:23:45:67:89:AB:CD",  # 余分な部分がある
     ],
 )
-def test_invalid_bd_adrs(invalid_bd_address: str) -> None:
-    # SimSetting インスタンスを作成
-    sim_setting = SimSetting(FILE_NAME_SETTING)
-
+def test_invalid_bd_adrs(sim_setting: SimSetting, invalid_bd_address: str) -> None:
     # read_setting を実行
     mock_yaml_data = yaml.dump({"info": {"bdaddress": invalid_bd_address}})
     with patch("builtins.open", mock_open(read_data=mock_yaml_data)):

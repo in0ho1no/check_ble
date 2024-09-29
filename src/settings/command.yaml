@@ -2,3 +2,13 @@ read:
   - func: "AAA"
     name: "BBB"
     handle: 0
+
+write:
+  - cmnd_name: "CCC"
+    cmnd_type: 0x00
+    handle_write: 00
+    handle_notify: 00
+    detail:
+      - type: 0x00
+        head: [0x00, 0x00]
+        body: [0x00, 0x00, 0x00]

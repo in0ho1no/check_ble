@@ -6,12 +6,7 @@ import pytest
 sys.path.append(os.path.join(os.path.dirname(__file__), "..//src"))
 
 
-from read_command import WriteData  # type: ignore
-
-
-@pytest.fixture
-def write_data() -> WriteData:
-    return WriteData()
+import utility  # type: ignore
 
 
 @pytest.mark.parametrize(
@@ -24,8 +19,8 @@ def write_data() -> WriteData:
         ([1000000, 2000000, 3000000], 6000000),
     ],
 )
-def test_calc_check_sum(write_data: WriteData, int_data_list: list[int], expected_result: int) -> None:
-    assert write_data.calc_check_sum(int_data_list) == expected_result
+def test_calc_check_sum(int_data_list: list[int], expected_result: int) -> None:
+    assert utility.calc_check_sum(int_data_list) == expected_result
 
 
 @pytest.mark.parametrize(
@@ -36,8 +31,8 @@ def test_calc_check_sum(write_data: WriteData, int_data_list: list[int], expecte
         (65535, [0xFF, 0xFF]),
     ],
 )
-def test_convert_int2two_byte_list(write_data: WriteData, target_value: int, expected_result: list[int]) -> None:
-    assert write_data.convert_int2two_byte_list(target_value) == expected_result
+def test_convert_int2two_byte_list(target_value: int, expected_result: list[int]) -> None:
+    assert utility.convert_int2two_byte_list(target_value) == expected_result
 
 
 @pytest.mark.parametrize(
@@ -49,8 +44,8 @@ def test_convert_int2two_byte_list(write_data: WriteData, target_value: int, exp
         ([0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF], [0xFB, 0x04]),
     ],
 )
-def test_get_check_sumt(write_data: WriteData, int_data_list: list[int], expected_result: list[int]) -> None:
-    assert write_data.get_check_sum(int_data_list) == expected_result
+def test_get_check_sumt(int_data_list: list[int], expected_result: list[int]) -> None:
+    assert utility.get_check_sum(int_data_list) == expected_result
 
 
 # pytestを使ったテストの実行

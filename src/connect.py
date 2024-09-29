@@ -7,6 +7,7 @@ from bleak.backends.characteristic import BleakGATTCharacteristic
 from bleak.backends.device import BLEDevice
 from bleak.exc import BleakError
 
+import utility
 from read_command import SimCommand, WriteData
 from read_setting import SimSetting
 
