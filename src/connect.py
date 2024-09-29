@@ -3,10 +3,11 @@ import io
 import logging
 
 from bleak import BleakClient, BleakScanner
+from bleak.backends.characteristic import BleakGATTCharacteristic
 from bleak.backends.device import BLEDevice
 from bleak.exc import BleakError
 
-from read_command import SimCommand
+from read_command import SimCommand, WriteData
 from read_setting import SimSetting
 
 FILE_NAME_SETTING = r"./settings/setting.yaml"
@@ -75,10 +76,23 @@ async def connect_device(device_r: BLEDevice) -> None:
     """
 
     def handle_disconnect(_: BleakClient) -> None:
-        # 実行中のタスクを中断して終了する
+        """実行中のタスクを中断して終了する
+
+        Args:
+            _ (BleakClient): 読み捨て
+        """
         print("Device was disconnected, goodbye.")
         for task in asyncio.all_tasks():
             task.cancel()
+
+    def handle_notification(_: BleakGATTCharacteristic, data: bytearray) -> None:
+        """ペリフェラルのnotifyを表示する
+
+        Args:
+            _ (BleakGATTCharacteristic): 読み捨て
+            data (bytearray): notifyの受信値
+        """
+        print(f"notify: {data}")
 
     print("Connecting...")
     async with BleakClient(
