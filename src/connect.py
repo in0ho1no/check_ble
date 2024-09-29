@@ -1,6 +1,7 @@
 import asyncio
 import io
 import logging
+from typing import Tuple
 
 from bleak import BleakClient, BleakScanner
 from bleak.backends.characteristic import BleakGATTCharacteristic
@@ -67,6 +68,49 @@ def show_client_info(client_r: BleakClient) -> None:
         print(f"Service: {service.uuid}")
         for char in service.characteristics:
             print(f"  Characteristic: {char.uuid}, Handle: {char.handle}")
+
+
+def make_command(
+    count_r: int,
+    cmnd_r: SimCommand,
+    tgt_cmnd_r: str,
+    tgt_type_r: int,
+) -> Tuple[bytearray, int, int]:
+    write_value = bytearray()
+    handle_wr = 0
+    handle_nt = 0
+    for write_data in cmnd_r.write_data_list:
+        if tgt_cmnd_r != write_data.cmnd_name:
+            continue
+
+        for detail_data in write_data.detali_list:
+            if tgt_type_r != detail_data.detail_type:
+                continue
+
+            send_data_list: list[int] = []
+            send_data_list.extend(detail_data.detail_head)
+            send_data_list.append(count_r)
+            send_data_list.append(detail_data.detail_type)
+
+            if tgt_type_r in cmnd_r.write_info.type_list:
+                send_data_list.append(write_data.cmnd_type)
+            else:
+                send_data_list.append(write_data.cmnd_type_detail)
+                send_data_list.append(detail_data.detail_mode)
+
+            send_data_list.extend(detail_data.detail_body)
+
+            check_sum = utility.get_check_sum(send_data_list)
+            send_data_list.extend(check_sum)
+            write_value = bytearray(send_data_list)
+
+            handle_wr = write_data.handle_write
+            handle_nt = write_data.handle_notify
+
+    if len(write_value) == 0:
+        raise ValueError(f"存在しないコマンドが指定されています。{tgt_cmnd_r=}, {handle_nt=}")
+
+    return (write_value, handle_wr, handle_nt)
 
 
 async def connect_device(device_r: BLEDevice) -> None:

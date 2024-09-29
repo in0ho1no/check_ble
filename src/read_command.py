@@ -20,24 +20,37 @@ class ReadData:
         self.rcv_data = ""
 
 
+class WriteInfo:
+    KEY_TYPE_LIST = "type_list"
+
+    type_list: list[int]
+
+    def __init__(self, data_r: dict) -> None:
+        self.type_list = data_r[self.KEY_TYPE_LIST]
+
+
 class DetailData:
     KEY_DETAIL_TYPE = "type"
     KEY_DETAIL_HEAD = "head"
+    KEY_DETAIL_MODE = "mode"
     KEY_DETAIL_BODY = "body"
 
     detail_type: int
     detail_head: list[int]
+    detail_mode: int
     detail_body: list[int]
 
     def __init__(self, detail_data_r: dict) -> None:
         self.detail_type = detail_data_r[self.KEY_DETAIL_TYPE]
         self.detail_head = detail_data_r[self.KEY_DETAIL_HEAD]
+        self.detail_mode = detail_data_r[self.KEY_DETAIL_MODE]
         self.detail_body = detail_data_r[self.KEY_DETAIL_BODY]
 
 
 class WriteData:
     KEY_CMND_NAME = "cmnd_name"
     KEY_CMND_TYPE = "cmnd_type"
+    KEY_CMND_TYPE_DETAIL = "cmnd_type_detail"
     KEY_HNDL_WRITE = "handle_write"
     KEY_HNDL_NOTIFY = "handle_notify"
 
@@ -45,6 +58,7 @@ class WriteData:
 
     cmnd_name: str
     cmnd_type: int
+    cmnd_detail: int
     handle_write: int
     handle_notify: int
     detali_list: list[DetailData]
@@ -52,6 +66,7 @@ class WriteData:
     def __init__(self, write_data_r: dict) -> None:
         self.cmnd_name = write_data_r[self.KEY_CMND_NAME]
         self.cmnd_type = write_data_r[self.KEY_CMND_TYPE]
+        self.cmnd_type_detail = write_data_r[self.KEY_CMND_TYPE_DETAIL]
         self.handle_write = write_data_r[self.KEY_HNDL_WRITE]
         self.handle_notify = write_data_r[self.KEY_HNDL_NOTIFY]
         self.detali_list = []
@@ -63,21 +78,27 @@ class SimCommand:
     """設定ファイルから読み込んだ情報を保持する"""
 
     KEY_RW_R = "read"
+    KEY_WRITE_INFO = "write_info"
     KEY_RW_W = "write"
 
-    read_data_list: list[ReadData] = []
-    write_data_list: list[WriteData] = []
+    read_data_list: list[ReadData]
+    write_info: WriteInfo
+    write_data_list: list[WriteData]
 
     def __init__(self, filepath_r: str) -> None:
         """設定ファイルを読み込む"""
         self.filepath_m = filepath_r
-        with open(self.filepath_m) as f:
+        with open(self.filepath_m, encoding="utf-8") as f:
             try:
                 data_rd = yaml.safe_load(f)
 
+                self.read_data_list = []
                 for inner in data_rd[self.KEY_RW_R]:
                     self.read_data_list.append(ReadData(inner))
 
+                self.write_info = WriteInfo(data_rd[self.KEY_WRITE_INFO])
+
+                self.write_data_list = []
                 for inner in data_rd[self.KEY_RW_W]:
                     self.write_data_list.append(WriteData(inner))
 
@@ -91,6 +112,8 @@ if __name__ == "__main__":
     cmnd = SimCommand(FILE_NAME_COMMAND)
     for read_data in cmnd.read_data_list:
         print(read_data)
+
+    print(cmnd.write_info.type_list)
 
     for write_data in cmnd.write_data_list:
         print(write_data)
