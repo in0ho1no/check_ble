@@ -9,11 +9,13 @@ from bleak.backends.device import BLEDevice
 from bleak.exc import BleakError
 
 import utility
-from read_command import SimCommand, WriteData
+from read_command import SimCommand
+from read_send_list import CommandList
 from read_setting import SimSetting
 
 FILE_NAME_SETTING = r"./settings/setting.yaml"
 FILE_NAME_COMMAND = r"./settings/command.yaml"
+FILE_NAME_SEND_LIST = r"./settings/send_list.yaml"
 
 
 async def scan_device(bd_addr_r: str) -> BLEDevice:
@@ -152,6 +154,16 @@ async def connect_device(device_r: BLEDevice) -> None:
         for rd in cmnd.read_data_list:
             rd.rcv_data = await client.read_gatt_char(rd.handle, use_cached=True)
             print(f'  {rd.name}: {"".join(map(chr, rd.rcv_data))}')
+
+        command_list = CommandList(FILE_NAME_SEND_LIST)
+        get_cmnd = command_list.get_command_dict("first")
+        if get_cmnd is not None:
+            count = 0
+            for send_list in get_cmnd[CommandList.KEY_SEND_LIST]:
+                write_value, hndl_wr, hndl_nt = make_command(count, cmnd, send_list[0], send_list[1])
+                await client.write_gatt_char(hndl_wr, write_value, response=False)
+                await client.start_notify(hndl_nt, handle_notification)
+                count = count + 1
 
         print("Diconnect...")
         await client.disconnect()
