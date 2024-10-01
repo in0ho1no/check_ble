@@ -12,9 +12,17 @@
 
     pipenv install bleak
 
+    pipenv install pyyaml
+
+    pipenv install pytest
+
+## 配布用
+
+### ライブラリ
+
     pipenv install Nuitka
 
-## exe化
+### exe化
 
 以下コマンドを実行する
 
