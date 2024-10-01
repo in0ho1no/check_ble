@@ -1,3 +1,9 @@
+/other_in/*
+!/other_in/.gitkeep
+
+/other_out/*
+!/other_out/.gitkeep
+
 __pycache__
 *.mypy_cache
 *.venv
