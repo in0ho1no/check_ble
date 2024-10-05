@@ -136,6 +136,7 @@ class ModernScrollbar(ttk.Scrollbar):
                 ),
             ],
         )
+
         style.configure(
             cls.STYLE_ID,
             # theme_useによって使えるconfigが異なるので注意
@@ -144,6 +145,7 @@ class ModernScrollbar(ttk.Scrollbar):
             troughcolor="#F0F0F0",
             width=12,
         )
+
         style.map(
             cls.STYLE_ID,
             background=[("active", cls.COLOR_BG_MOUSE_OVER)],
@@ -180,10 +182,9 @@ class ModernButton(ttk.Button):
             return
 
         style = ttk.Style()
-
         style.layout(
             cls.STYLE_ID,
-            style.layout("TButton"),  # TButtonの標準レイアウトを継承
+            style.layout("TButton"),  # 標準レイアウトを継承
         )
 
         # ボタンのデフォルトスタイルの設定
@@ -207,6 +208,56 @@ class ModernButton(ttk.Button):
             ],
             foreground=[
                 ("disabled", cls.COLOR_FG_DISABLE),  # 無効時のテキスト色
+            ],
+        )
+
+        cls.style_initialized = True
+
+
+class ModernCheckbutton(ttk.Checkbutton):
+    # スタイルの定数をクラスレベルで定義
+    STYLE_ID = "Modern.Checkbutton"
+    FONT = (COMMON_FONT, 10)
+    COLOR_BG = COMMON_BG
+    COLOR_BG_MOUSE_OVER = "#38759B"
+    COLOR_FONT = COMMON_FG
+
+    COLOR_FG_DISABLE = "#FFFFFF"
+
+    # スタイルは1度だけ定義して再利用
+    style_initialized = False
+
+    def __init__(self, master: ttk.Frame, **kw: Any) -> None:
+        # スタイルを初期化
+        self.initialize_style()
+        # カスタムスタイルを利用する
+        super().__init__(master, style=self.STYLE_ID, **kw)
+
+    @classmethod
+    def initialize_style(cls) -> None:
+        """スタイルの初期化をクラスメソッドとして定義し、一度だけ実行"""
+        if cls.style_initialized:
+            return
+
+        style = ttk.Style()
+        style.layout(
+            cls.STYLE_ID,
+            style.layout("TCheckbutton"),  # 標準レイアウトを継承
+        )
+
+        style.configure(
+            cls.STYLE_ID,
+            font=cls.FONT,
+            background=cls.COLOR_BG,
+            foreground=cls.COLOR_FONT,
+        )
+
+        # 異なる状態でのスタイルをマッピング
+        style.map(
+            cls.STYLE_ID,
+            background=[
+                # 指定しても反映されないが、指定がないと透過されてしまう。
+                ("focus", cls.COLOR_BG_MOUSE_OVER),  # フォーカス時の背景色
             ],
         )
 
@@ -249,8 +300,11 @@ class LogViewer:
         self.scrollbar.config(command=self.custom_scroll)
         self.tree.configure(yscrollcommand=self.scrollbar.set)
 
+        # 操作用フレームの作成
+        self.operation_frame = ttk.Frame(self.master)
+
         # ボタンフレームの作成
-        self.button_frame = ttk.Frame(self.master)
+        self.button_frame = ttk.Frame(self.operation_frame)
 
         # スキャン開始ボタン
         self.scan_button = ModernButton(self.button_frame, text="スキャン開始", command=self.start_scan)
@@ -258,16 +312,14 @@ class LogViewer:
         # スキャン停止ボタン
         self.stop_button = ModernButton(self.button_frame, text="スキャン停止", command=self.stop_scan, state="disabled")
 
-        # 自動スクロールのチェックボックス
-        self.auto_scroll_check = ttk.Checkbutton(
-            self.button_frame,
-            text="自動スクロール",
-            variable=self.auto_scroll,
-            style="TCheckbutton",
-        )
+        # オプション用フレームの作成
+        self.option_frame = ttk.Frame(self.operation_frame)
 
         # ログクリアボタン
-        self.clear_button = ModernButton(self.button_frame, text="ログクリア", command=self.clear_log)
+        self.clear_button = ModernButton(self.option_frame, text="ログクリア", command=self.clear_log)
+
+        # 自動スクロールのチェックボックス
+        self.auto_scroll_check = ModernCheckbutton(self.option_frame, text="自動スクロール", variable=self.auto_scroll)
 
         self.pack_widgets()
 
@@ -291,11 +343,15 @@ class LogViewer:
         self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         # ボタン部分の配置
-        self.button_frame.pack(side=tk.BOTTOM, pady=10)
-        self.scan_button.pack(side=tk.LEFT, anchor=tk.W)
-        self.stop_button.pack(side=tk.LEFT, anchor=tk.E)
-        self.auto_scroll_check.pack(side=tk.LEFT)
-        self.clear_button.pack(side=tk.LEFT)
+        self.operation_frame.pack(side=tk.BOTTOM, expand=True, fill=tk.BOTH, padx=10, pady=(0, 10))
+
+        self.button_frame.pack(side=tk.LEFT, padx=5)
+        self.scan_button.pack(side=tk.LEFT, anchor=tk.W, padx=(0, 5))
+        self.stop_button.pack(side=tk.LEFT, anchor=tk.E, padx=(0, 5))
+
+        self.option_frame.pack(side=tk.RIGHT, padx=5)
+        self.clear_button.pack(side=tk.TOP, pady=5)
+        self.auto_scroll_check.pack(side=tk.BOTTOM, pady=5)
 
     def add_log(self, log: str) -> None:
         self.master.after(0, self._add_log, log)
