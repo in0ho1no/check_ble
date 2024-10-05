@@ -1,9 +1,9 @@
 {
-    "folders": [
-        {
-            "path": "."
-        }
-    ],
+	"folders": [
+		{
+			"path": "."
+		}
+	],
 	"settings": {
 		// ミニマップを非表示にする
 		"editor.minimap.enabled": false,
@@ -12,10 +12,9 @@
 			"activityBar.background": "#e2df16b4",
 			"activityBar.foreground": "#06065df5",
 		},
-
 		// フォント設定
 		"editor.fontFamily": "Consolas, 'Meiryo UI','Courier New', monospace",
-
+		"editor.wordSeparators": "./\\()\"'-:,.;<>~!@# ○$%^&*|+=[]{}`~?．。，、（）「」［］｛｝《》『』【】てにをはがのともへでや",
 		"editor.defaultFormatter": "charliermarsh.ruff",
 		"editor.formatOnSave": true,
 		"editor.codeActionsOnSave": {
@@ -25,16 +24,14 @@
 		"ruff.format.args": [
 			"--config=pyproject.toml"
 		],
-		
 		"mypy-type-checker.args": [
-			"--warn-return-any",			// 戻り値を明示する
-			"--disallow-untyped-defs",		// 戻り値の型を明示する
-			"--no-implicit-optional",		// 型を明示した変数にNoneの代入禁止
+			"--warn-return-any", // 戻り値を明示する
+			"--disallow-untyped-defs", // 戻り値の型を明示する
+			"--no-implicit-optional", // 型を明示した変数にNoneの代入禁止
 		],
 		"mypy-type-checker.ignorePatterns": [
 			"docs/source/conf.py",
 		],
-
 		"autoDocstring.docstringFormat": "google",
 		"[jsonc]": {
 			"editor.defaultFormatter": "vscode.json-language-features"
