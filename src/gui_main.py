@@ -7,6 +7,8 @@ from typing import Any
 
 from bleak import BleakScanner
 
+PATH_ICON = r"src\ico\ble-sim-24px.ico"
+
 GUI_TITLE = "通信ログビューア"
 COMMON_FONT = "メイリオ"
 COMMON_BG = "#9BB3C2"
@@ -215,7 +217,13 @@ class LogViewer:
     def __init__(self, master: tk.Tk) -> None:
         self.master = master
         self.master.title(GUI_TITLE)
+        self.master.iconbitmap(PATH_ICON)
         self.master.geometry("+100+100")
+
+        # ログのカウンター
+        self.log_counter = 0
+        # 自動スクロールの状態
+        self.auto_scroll = tk.BooleanVar(value=True)
 
         self.setup_ui()
 
@@ -227,9 +235,6 @@ class LogViewer:
         # スキャン制御用の変数
         self.scanning = False
         self.scanner: None | BleakScanner = None
-
-        # ログのカウンター
-        self.log_counter = 0
 
     def setup_ui(self) -> None:
         # メインフレームの作成
@@ -253,7 +258,14 @@ class LogViewer:
         # スキャン停止ボタン
         self.stop_button = ModernButton(self.button_frame, text="スキャン停止", command=self.stop_scan, state="disabled")
 
-        # 各ウィジェットの配置
+        # 自動スクロールのチェックボックス
+        self.auto_scroll_check = ttk.Checkbutton(
+            self.button_frame,
+            text="自動スクロール",
+            variable=self.auto_scroll,
+            style="TCheckbutton",
+        )
+
         self.pack_widgets()
 
     def setup_tree_columns(self) -> None:
@@ -279,16 +291,21 @@ class LogViewer:
         self.button_frame.pack(side=tk.BOTTOM, pady=10)
         self.scan_button.pack(side=tk.LEFT, anchor=tk.W)
         self.stop_button.pack(side=tk.LEFT, anchor=tk.E)
+        self.auto_scroll_check.pack(side=tk.LEFT)
 
     def add_log(self, log: str) -> None:
         self.master.after(0, self._add_log, log)
 
     def _add_log(self, log: str) -> None:
+        # ログ追加
         self.log_counter += 1
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         tags = ("even",) if self.log_counter % 2 == 0 else ("odd",)
         self.tree.insert("", "end", values=(self.log_counter, timestamp, log), tags=tags)
-        self.tree.yview_moveto(1)  # スクロールを最下部に移動
+
+        # 自動スクロールが有効な場合のみ最下部にスクロール
+        if self.auto_scroll.get():
+            self.tree.yview_moveto(1)
 
     def start_scan(self) -> None:
         self.scan_button.config(state="disabled")
