@@ -39,11 +39,11 @@ class ModernTreeview(ttk.Treeview):
     # スタイルは1度だけ定義して再利用
     style_initialized = False
 
-    def __init__(self, master_r: ttk.Frame, **kw: Any) -> None:
+    def __init__(self, master: ttk.Frame, **kw: Any) -> None:
         # スタイルを初期化
         self.initialize_style()
         # カスタムスタイルを利用する
-        super().__init__(master_r, style=self.STYLE_ID, **kw)
+        super().__init__(master, style=self.STYLE_ID, **kw)
 
     @classmethod
     def initialize_style(cls) -> None:
@@ -104,11 +104,11 @@ class ModernScrollbar(ttk.Scrollbar):
     # スタイルは1度だけ定義して再利用
     style_initialized = False
 
-    def __init__(self, master_r: ttk.Frame, **kw: Any) -> None:
+    def __init__(self, master: ttk.Frame, **kw: Any) -> None:
         # スタイルを初期化
         self.initialize_style()
         # カスタムスタイルを利用する
-        super().__init__(master_r, style=self.STYLE_ID, **kw)
+        super().__init__(master, style=self.STYLE_ID, **kw)
 
     @classmethod
     def initialize_style(cls) -> None:
@@ -165,11 +165,11 @@ class ModernButton(ttk.Button):
     # スタイルは1度だけ定義して再利用
     style_initialized = False
 
-    def __init__(self, master_r: ttk.Frame, **kw: Any) -> None:
+    def __init__(self, master: ttk.Frame, **kw: Any) -> None:
         # スタイルを初期化
         self.initialize_style()
         # カスタムスタイルを利用する
-        super().__init__(master_r, style=self.STYLE_ID, **kw)
+        super().__init__(master, style=self.STYLE_ID, **kw)
 
     @classmethod
     def initialize_style(cls) -> None:
@@ -212,48 +212,12 @@ class ModernButton(ttk.Button):
 
 
 class LogViewer:
-    def __init__(self, master_r: tk.Tk) -> None:
-        self.master_m = master_r
-        self.master_m.title(GUI_TITLE)
-        self.master_m.geometry("+100+100")
+    def __init__(self, master: tk.Tk) -> None:
+        self.master = master
+        self.master.title(GUI_TITLE)
+        self.master.geometry("+100+100")
 
-        # メインフレームの作成
-        main_frame = ttk.Frame(self.master_m)
-
-        # Treeviewの設定
-        self.tree = ModernTreeview(main_frame, columns=("No", "Timestamp", "Log"), show="headings")
-        self.tree.heading("No", text="No.")
-        self.tree.heading("Timestamp", text="タイムスタンプ")
-        self.tree.heading("Log", text="ログ")
-        self.tree.column("No", width=50, minwidth=50, anchor="center", stretch=False)
-        self.tree.column("Timestamp", width=150, minwidth=150, anchor="center", stretch=False)
-        self.tree.column("Log", width=400)
-
-        # 背景色の交互設定
-        self.tree.tag_configure("odd", background="#E8E8E8")
-        self.tree.tag_configure("even", background="#FFFFFF")
-
-        # スクロールバーの追加
-        self.scrollbar = ModernScrollbar(main_frame, orient=tk.VERTICAL, command=self.tree.yview)
-        self.scrollbar.config(command=self.custom_scroll)
-        self.tree.configure(yscrollcommand=self.scrollbar.set)
-
-        # ボタンフレームの作成
-        button_frame = ttk.Frame(self.master_m)
-
-        # スキャン開始ボタン
-        self.scan_button = ModernButton(button_frame, text="スキャン開始", command=self.start_scan)
-
-        # スキャン停止ボタン
-        self.stop_button = ModernButton(button_frame, text="スキャン停止", command=self.stop_scan, state="disabled")
-
-        main_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=10)
-        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-
-        button_frame.pack(side=tk.BOTTOM, pady=10)
-        self.scan_button.pack(side=tk.LEFT, anchor=tk.W)
-        self.stop_button.pack(side=tk.LEFT, anchor=tk.E)
+        self.setup_ui()
 
         # 非同期ループのためのイベントループ
         self.loop = asyncio.new_event_loop()
@@ -267,8 +231,57 @@ class LogViewer:
         # ログのカウンター
         self.log_counter = 0
 
+    def setup_ui(self) -> None:
+        # メインフレームの作成
+        self.main_frame = ttk.Frame(self.master)
+
+        # Treeviewの設定
+        self.tree = ModernTreeview(self.main_frame, columns=("No", "Timestamp", "Log"), show="headings")
+        self.setup_tree_columns()
+
+        # スクロールバーの追加
+        self.scrollbar = ModernScrollbar(self.main_frame, orient=tk.VERTICAL, command=self.tree.yview)
+        self.scrollbar.config(command=self.custom_scroll)
+        self.tree.configure(yscrollcommand=self.scrollbar.set)
+
+        # ボタンフレームの作成
+        self.button_frame = ttk.Frame(self.master)
+
+        # スキャン開始ボタン
+        self.scan_button = ModernButton(self.button_frame, text="スキャン開始", command=self.start_scan)
+
+        # スキャン停止ボタン
+        self.stop_button = ModernButton(self.button_frame, text="スキャン停止", command=self.stop_scan, state="disabled")
+
+        # 各ウィジェットの配置
+        self.pack_widgets()
+
+    def setup_tree_columns(self) -> None:
+        # 列の設定
+        self.tree.heading("No", text="No.")
+        self.tree.heading("Timestamp", text="タイムスタンプ")
+        self.tree.heading("Log", text="ログ")
+        self.tree.column("No", width=50, minwidth=50, anchor="center", stretch=False)
+        self.tree.column("Timestamp", width=150, minwidth=150, anchor="center", stretch=False)
+        self.tree.column("Log", width=400)
+
+        # 背景色の交互設定
+        self.tree.tag_configure("odd", background="#E8E8E8")
+        self.tree.tag_configure("even", background="#FFFFFF")
+
+    def pack_widgets(self) -> None:
+        # ログ表示部分の配置
+        self.main_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=10)
+        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+
+        # ボタン部分の配置
+        self.button_frame.pack(side=tk.BOTTOM, pady=10)
+        self.scan_button.pack(side=tk.LEFT, anchor=tk.W)
+        self.stop_button.pack(side=tk.LEFT, anchor=tk.E)
+
     def add_log(self, log: str) -> None:
-        self.master_m.after(0, self._add_log, log)
+        self.master.after(0, self._add_log, log)
 
     def _add_log(self, log: str) -> None:
         self.log_counter += 1
@@ -329,14 +342,14 @@ class LogViewer:
         finally:
             self.scanner = None
             self.add_log("スキャンを停止しました。")
-            self.master_m.after(0, self.reset_buttons)
+            self.master.after(0, self.reset_buttons)
 
     def reset_buttons(self) -> None:
         self.scan_button.config(state="normal")
         self.stop_button.config(state="disabled")
 
     def run(self) -> None:
-        self.master_m.mainloop()
+        self.master.mainloop()
 
 
 def main() -> None:
