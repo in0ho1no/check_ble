@@ -12,10 +12,13 @@ COMMON_FONT = "メイリオ"
 COMMON_BG = "#9BB3C2"
 COMMON_FG = "#0F1E59"
 
+COMMON_BG_DISABLE = "#c7e7f2"
+COMMON_FG_DISABLE = "#0F1E59"
+
 
 class ModernTreeview(ttk.Treeview):
     # スタイルの定数をクラスレベルで定義
-    CUSTUM_STYLE_MTV = "Modern.Treeview"
+    STYLE_ID = "Modern.Treeview"
 
     BACKGROUND_COLOR = "#F0F0F0"
     FOREGROUND_COLOR = "#0F0F0F"
@@ -24,45 +27,48 @@ class ModernTreeview(ttk.Treeview):
     ROW_HEIGHT = 25
 
     # ヘッダ部の定義
-    CUSTUM_STYLE_MTVH = CUSTUM_STYLE_MTV + "." + "Heading"
-    MTVH_BACKGROUND_COLOR = COMMON_BG
-    MTVH_FOREGROUND_COLOR = COMMON_FG
+    CUSTUM_STYLE_MTVH = STYLE_ID + "." + "Heading"
+    MTVH_BACKGROUND_COLOR = COMMON_BG_DISABLE
+    MTVH_FOREGROUND_COLOR = COMMON_FG_DISABLE
     MTVH_FONT = (COMMON_FONT, 10)
     MTVH_BORDER_WIDTH = 0
 
     # ツリーエリアの定義
-    CUSTUM_STYLE_TREE_AREA = CUSTUM_STYLE_MTV + "." + "treearea"
+    CUSTUM_STYLE_TREE_AREA = STYLE_ID + "." + "treearea"
 
     # スタイルは1度だけ定義して再利用
     style_initialized = False
 
     def __init__(self, master_r: ttk.Frame, **kw: Any) -> None:
+        # スタイルを初期化
+        self.initialize_style()
         # カスタムスタイルを利用する
-        super().__init__(master_r, style=ModernTreeview.CUSTUM_STYLE_MTV, **kw)
-        if not ModernTreeview.style_initialized:
-            self._initialize_style()
+        super().__init__(master_r, style=self.STYLE_ID, **kw)
 
     @classmethod
-    def _initialize_style(cls) -> None:
+    def initialize_style(cls) -> None:
         """スタイルの初期化をクラスメソッドとして定義し、一度だけ実行"""
+        if cls.style_initialized:
+            return
+
         style = ttk.Style()
         # config設定が反映されないのであらかじめ用意されたテーマを設定しておく
         style.theme_use("alt")
 
         # treeviewの設定
         style.layout(
-            cls.CUSTUM_STYLE_MTV,
+            cls.STYLE_ID,
             [(cls.CUSTUM_STYLE_TREE_AREA, {"sticky": "nswe"})],
         )
         style.configure(
-            cls.CUSTUM_STYLE_MTV,
+            cls.STYLE_ID,
             font=cls.FONT,
             background=cls.BACKGROUND_COLOR,
             foreground=cls.FOREGROUND_COLOR,
             rowheight=cls.ROW_HEIGHT,
         )
         style.map(
-            cls.CUSTUM_STYLE_MTV,
+            cls.STYLE_ID,
             background=[("selected", cls.SELECTED_COLOR)],
         )
 
@@ -99,15 +105,20 @@ class ModernScrollbar(ttk.Scrollbar):
     style_initialized = False
 
     def __init__(self, master_r: ttk.Frame, **kw: Any) -> None:
-        super().__init__(master_r, style=ModernScrollbar.STYLE_ID, **kw)
-        if not ModernScrollbar.style_initialized:
-            self._initialize_style()
+        # スタイルを初期化
+        self.initialize_style()
+        # カスタムスタイルを利用する
+        super().__init__(master_r, style=self.STYLE_ID, **kw)
 
     @classmethod
-    def _initialize_style(cls) -> None:
+    def initialize_style(cls) -> None:
+        """スタイルの初期化をクラスメソッドとして定義し、一度だけ実行"""
+        if cls.style_initialized:
+            return
+
         style = ttk.Style()
         style.layout(
-            ModernScrollbar.STYLE_ID,
+            cls.STYLE_ID,
             [
                 (
                     "Vertical.Scrollbar.trough",
@@ -124,15 +135,15 @@ class ModernScrollbar(ttk.Scrollbar):
             ],
         )
         style.configure(
-            ModernScrollbar.STYLE_ID,
+            cls.STYLE_ID,
             # theme_useによって使えるconfigが異なるので注意
-            background="#E8E8E8",
-            bordercolor="#E8E8E8",
+            background=cls.COLOR_BG,
+            bordercolor=cls.COLOR_BG,
             troughcolor="#F0F0F0",
             width=12,
         )
         style.map(
-            ModernScrollbar.STYLE_ID,
+            cls.STYLE_ID,
             background=[("active", cls.COLOR_BG_MOUSE_OVER)],
             bordercolor=[("active", cls.COLOR_BG_MOUSE_OVER)],
         )
@@ -146,21 +157,26 @@ class ModernButton(ttk.Button):
     FONT = (COMMON_FONT, 10)
     COLOR_BG = COMMON_BG
     COLOR_BG_MOUSE_OVER = "#38759B"
+    COLOR_BG_DISABLE = COMMON_BG_DISABLE
     COLOR_FONT = COMMON_FG
 
-    BACKGROUND_MO_COLOR = COMMON_BG
+    COLOR_FG_DISABLE = "#FFFFFF"
 
     # スタイルは1度だけ定義して再利用
     style_initialized = False
 
     def __init__(self, master_r: ttk.Frame, **kw: Any) -> None:
+        # スタイルを初期化
+        self.initialize_style()
         # カスタムスタイルを利用する
-        if not ModernButton.style_initialized:
-            self._initialize_style()
-        super().__init__(master_r, style=ModernButton.STYLE_ID, **kw)
+        super().__init__(master_r, style=self.STYLE_ID, **kw)
 
     @classmethod
-    def _initialize_style(cls) -> None:
+    def initialize_style(cls) -> None:
+        """スタイルの初期化をクラスメソッドとして定義し、一度だけ実行"""
+        if cls.style_initialized:
+            return
+
         style = ttk.Style()
 
         style.layout(
@@ -185,10 +201,10 @@ class ModernButton(ttk.Button):
             background=[
                 ("active", cls.COLOR_BG_MOUSE_OVER),
                 ("focus", cls.COLOR_BG_MOUSE_OVER),  # フォーカス時の背景色
-                ("disabled", "#e8e8e8"),  # 無効時の背景色
+                ("disabled", cls.COLOR_BG_DISABLE),  # 無効時の背景色
             ],
             foreground=[
-                ("disabled", "#FFFFFF"),  # 無効時のテキスト色
+                ("disabled", cls.COLOR_FG_DISABLE),  # 無効時のテキスト色
             ],
         )
 
