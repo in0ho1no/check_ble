@@ -266,6 +266,9 @@ class LogViewer:
             style="TCheckbutton",
         )
 
+        # ログクリアボタン
+        self.clear_button = ModernButton(self.button_frame, text="ログクリア", command=self.clear_log)
+
         self.pack_widgets()
 
     def setup_tree_columns(self) -> None:
@@ -292,6 +295,7 @@ class LogViewer:
         self.scan_button.pack(side=tk.LEFT, anchor=tk.W)
         self.stop_button.pack(side=tk.LEFT, anchor=tk.E)
         self.auto_scroll_check.pack(side=tk.LEFT)
+        self.clear_button.pack(side=tk.LEFT)
 
     def add_log(self, log: str) -> None:
         self.master.after(0, self._add_log, log)
@@ -306,6 +310,11 @@ class LogViewer:
         # 自動スクロールが有効な場合のみ最下部にスクロール
         if self.auto_scroll.get():
             self.tree.yview_moveto(1)
+
+    def clear_log(self) -> None:
+        self.tree.delete(*self.tree.get_children())
+        self.log_counter = 0
+        self.add_log("ログをクリアしました。")
 
     def start_scan(self) -> None:
         self.scan_button.config(state="disabled")
