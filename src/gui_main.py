@@ -11,14 +11,17 @@ from gui.parts_modern_button import ModernButton
 from gui.parts_modern_checkbutton import ModernCheckbutton
 from gui.parts_modern_scrollbar import ModernScrollbar
 from gui.parts_modern_treeview import ModernTreeview
+from gui_setting import BDAddressManager
+from read_setting import SimSetting
 
 PATH_ICON = r"src\ico\ble-sim-24px.ico"
+PATH_SETTING = r"src\settings\setting.yaml"
 
 GUI_TITLE = "通信ログビューア"
 
 
 class LogViewer:
-    def __init__(self, master: tk.Tk) -> None:
+    def __init__(self, master: tk.Toplevel) -> None:
         self.master = master
         self.master.title(GUI_TITLE)
         self.master.iconbitmap(PATH_ICON)
@@ -183,28 +186,42 @@ class LogViewer:
         self.scan_button.config(state="normal")
         self.stop_button.config(state="disabled")
 
+
+class BLEManager:
+    def __init__(self) -> None:
+        self.root = tk.Tk()
+        self.root.withdraw()  # メインウィンドウを非表示にする
+
+        # SimSettingインスタンスを作成
+        self.sim_setting = SimSetting(PATH_SETTING)
+
+        # LogViewerウィンドウの作成
+        self.log_viewer_window = tk.Toplevel(self.root)
+        self.log_viewer = LogViewer(self.log_viewer_window)
+
+        # BDAddressManagerウィンドウの作成
+        self.bd_manager_window = tk.Toplevel(self.root)
+        self.bd_manager = BDAddressManager(self.bd_manager_window, self.sim_setting)
+
+        # ウィンドウが閉じられたときの処理
+        self.log_viewer_window.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.bd_manager_window.protocol("WM_DELETE_WINDOW", self.on_closing)
+
+    def on_closing(self) -> None:
+        if self.log_viewer.scanning:
+            self.log_viewer.stop_scan()
+        self.log_viewer.loop.call_soon_threadsafe(self.log_viewer.loop.stop)
+        self.root.destroy()
+
     def run(self) -> None:
-        self.master.mainloop()
+        # 初期ログメッセージを追加
+        self.log_viewer.add_log("アプリケーションを起動しました。")
+        self.root.mainloop()
 
 
 def main() -> None:
-    root = tk.Tk()
-    log_viewer = LogViewer(root)
-
-    # ウィンドウが閉じられたときの処理
-    def on_closing() -> None:
-        if log_viewer.scanning:
-            log_viewer.stop_scan()
-        log_viewer.loop.call_soon_threadsafe(log_viewer.loop.stop)
-        root.destroy()
-
-    root.protocol("WM_DELETE_WINDOW", on_closing)
-
-    # 初期ログメッセージを追加
-    log_viewer.add_log("アプリケーションを起動しました。")
-
-    # LogViewerインスタンスのrun()メソッドを呼び出してメインループを開始
-    log_viewer.run()
+    ble_manager = BLEManager()
+    ble_manager.run()
 
 
 if __name__ == "__main__":
