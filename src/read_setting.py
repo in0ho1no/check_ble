@@ -93,7 +93,7 @@ class SimSetting:
             return False
 
         if new_bd_adrs in self.__bd_adrs_list_m:
-            # print("エラー: 指定されたBDアドレスは既に存在します。")
+            print("エラー: 指定されたBDアドレスは既に存在します。")
             return False
 
         self.__bd_adrs_list_m.append(new_bd_adrs)
