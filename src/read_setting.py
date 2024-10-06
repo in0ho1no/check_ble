@@ -99,8 +99,36 @@ class SimSetting:
         self.__bd_adrs_list_m.append(new_bd_adrs)
         self.data_rd[self.KEY_INFO][self.KEY_BD_ADRS] = self.__bd_adrs_list_m
 
-        with open(self.filepath_m, "w") as f:
-            yaml.dump(self.data_rd, f, default_flow_style=False)
+        self.__save_to_yaml()
 
         print(f"BDアドレス '{new_bd_adrs}' を追加しました。")
         return True
+
+    def remove_bd_adrs(self, bd_adrs: str) -> bool:
+        """指定されたBDアドレスを削除し、yamlファイルを更新する
+
+        Args:
+            bd_adrs (str): 削除するBDアドレス
+
+        Returns:
+            bool: 削除成功:True, 削除失敗:False
+        """
+        if self.__chk_bd_adrs(bd_adrs) is None:
+            return False
+
+        if bd_adrs not in self.__bd_adrs_list_m:
+            print("エラー: 指定されたBDアドレスは存在しません。")
+            return False
+
+        self.__bd_adrs_list_m.remove(bd_adrs)
+        self.data_rd[self.KEY_INFO][self.KEY_BD_ADRS] = self.__bd_adrs_list_m
+
+        self.__save_to_yaml()
+
+        print(f"BDアドレス '{bd_adrs}' を削除しました。")
+        return True
+
+    def __save_to_yaml(self) -> None:
+        """現在のデータをYAMLファイルに保存する"""
+        with open(self.filepath_m, "w") as f:
+            yaml.dump(self.data_rd, f, default_flow_style=False)

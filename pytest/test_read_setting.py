@@ -1,5 +1,6 @@
 import os
 import sys
+from pathlib import Path
 from typing import Any
 from unittest.mock import mock_open, patch
 
@@ -16,8 +17,77 @@ FILE_NAME_SETTING = r"./src/settings/setting.yaml"
 
 
 @pytest.fixture
-def sim_setting() -> SimSetting:
-    return SimSetting(FILE_NAME_SETTING)
+def sim_setting(tmp_path: Path) -> SimSetting:
+    yaml_file = tmp_path / "test_config.yaml"
+    yaml_file.write_text(yaml.dump({"info": {"bdaddress": ["aa:bb:cc:dd:ee:ff"]}}))
+    return SimSetting(str(yaml_file))
+
+
+# add_bd_adrsのテストケース
+@pytest.mark.parametrize(
+    "new_bd_address, expected_result, expected_list",
+    [
+        ("11:22:33:44:55:66", True, ["aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"]),  # 正しい形式、追加成功
+        ("aa:bb:cc:dd:ee:ff", False, ["aa:bb:cc:dd:ee:ff"]),  # 既存のアドレス、追加失敗
+        ("GG:HH:II:JJ:KK:LL", False, ["aa:bb:cc:dd:ee:ff"]),  # 無効なアドレス、追加失敗
+    ],
+)
+def test_add_bd_adrs(sim_setting: SimSetting, new_bd_address: str, expected_result: bool, expected_list: list) -> None:
+    result = sim_setting.add_bd_adrs(new_bd_address)
+    assert result == expected_result
+    assert sim_setting.get_bd_adrs() == expected_list
+
+    # YAMLファイルが正しく更新されたことを確認
+    with open(sim_setting.filepath_m) as f:
+        saved_data = yaml.safe_load(f)
+        assert saved_data["info"]["bdaddress"] == expected_list
+
+
+# remove_bd_adrsのテストケース
+@pytest.mark.parametrize(
+    "remove_bd_address, expected_result, expected_list",
+    [
+        ("aa:bb:cc:dd:ee:ff", True, []),  # 存在するアドレス、削除成功
+        ("11:22:33:44:55:66", False, ["aa:bb:cc:dd:ee:ff"]),  # 存在しないアドレス、削除失敗
+        ("GG:HH:II:JJ:KK:LL", False, ["aa:bb:cc:dd:ee:ff"]),  # 無効なアドレス、削除失敗
+    ],
+)
+def test_remove_bd_adrs(sim_setting: SimSetting, remove_bd_address: str, expected_result: bool, expected_list: list[str]) -> None:
+    result = sim_setting.remove_bd_adrs(remove_bd_address)
+    assert result == expected_result
+    assert sim_setting.get_bd_adrs() == expected_list
+
+    # YAMLファイルが正しく更新されたことを確認
+    with open(sim_setting.filepath_m) as f:
+        saved_data = yaml.safe_load(f)
+        assert saved_data["info"]["bdaddress"] == expected_list
+
+
+# 複数の操作を組み合わせたテストケース
+def test_multiple_operations(sim_setting: SimSetting) -> None:
+    # 初期状態を確認
+    assert sim_setting.get_bd_adrs() == ["aa:bb:cc:dd:ee:ff"]
+
+    # 新しいアドレスを追加
+    assert sim_setting.add_bd_adrs("11:22:33:44:55:66") is True
+    assert sim_setting.get_bd_adrs() == ["aa:bb:cc:dd:ee:ff", "11:22:33:44:55:66"]
+
+    # 既存のアドレスを削除
+    assert sim_setting.remove_bd_adrs("aa:bb:cc:dd:ee:ff") is True
+    assert sim_setting.get_bd_adrs() == ["11:22:33:44:55:66"]
+
+    # 存在しないアドレスの削除を試みる
+    assert sim_setting.remove_bd_adrs("aa:bb:cc:dd:ee:ff") is False
+    assert sim_setting.get_bd_adrs() == ["11:22:33:44:55:66"]
+
+    # 無効なアドレスの追加を試みる
+    assert sim_setting.add_bd_adrs("invalid_address") is False
+    assert sim_setting.get_bd_adrs() == ["11:22:33:44:55:66"]
+
+    # YAMLファイルが正しく更新されたことを確認
+    with open(sim_setting.filepath_m) as f:
+        saved_data = yaml.safe_load(f)
+        assert saved_data["info"]["bdaddress"] == ["11:22:33:44:55:66"]
 
 
 # Trueを期待するテストケース
