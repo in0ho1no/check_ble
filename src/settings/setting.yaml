@@ -1,2 +1,5 @@
 info:
-  bdaddress: "xx:xx:xx:xx:xx:xx"
+  bdaddress: [
+    "aa:aa:aa:aa:aa:aa",
+    "bb:bb:bb:bb:bb:bb",
+  ]

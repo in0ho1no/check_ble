@@ -21,7 +21,9 @@ class SimSetting:
     KEY_INFO = "info"
     KEY_BD_ADRS = "bdaddress"
 
-    SEP_BD_ADRS = ":"
+    BD_ADRS_SEPALATE = ":"
+    BD_ADRS_PARTS = 6
+    BD_ADRS_PART_LENGTH = 2
 
     def __init__(self, filepath_r: str) -> None:
         self.filepath_m = filepath_r
@@ -32,9 +34,16 @@ class SimSetting:
         with open(self.filepath_m) as f:
             data_rd = yaml.safe_load(f)
 
-            self.__bd_adrs_m = self.__chk_bd_adrs(data_rd[self.KEY_INFO][self.KEY_BD_ADRS])
+            self.__bd_adrs_list_m = []
+            bd_adrs_list = data_rd[self.KEY_INFO][self.KEY_BD_ADRS]
+            for bd_adrs in bd_adrs_list:
+                if self.__chk_bd_adrs(bd_adrs) is None:
+                    continue
 
-    def __chk_bd_adrs(self, chk_r: str) -> str:
+                self.__bd_adrs_list_m.append(bd_adrs)
+
+    @classmethod
+    def __chk_bd_adrs(cls, chk_r: str) -> str | None:
         """指定された文字列がBDアドレスとして適切かチェックする
 
         Args:
@@ -43,30 +52,30 @@ class SimSetting:
         Returns:
             str: BDアドレスに適合しない: 空白文字, BDアドレスに適合する: チェック対象の文字列をそのまま返す
         """
-        if self.SEP_BD_ADRS not in chk_r:
-            print(f"エラー: 設定ファイル: BDアドレスは{self.SEP_BD_ADRS}で区切ってください。")
-            return ""
+        if cls.BD_ADRS_SEPALATE not in chk_r:
+            print(f"エラー: 設定ファイル: BDアドレスは{cls.BD_ADRS_SEPALATE}で区切ってください。")
+            return None
 
-        split_bd_adrs = chk_r.split(self.SEP_BD_ADRS)
+        split_bd_adrs = chk_r.split(cls.BD_ADRS_SEPALATE)
         for split_text in split_bd_adrs:
-            if 2 != len(split_text):
-                print(f"エラー: 設定ファイル: BDアドレスは2文字ずつ{self.SEP_BD_ADRS}で区切ってください。")
-                return ""
+            if cls.BD_ADRS_PART_LENGTH != len(split_text):
+                print(f"エラー: 設定ファイル: BDアドレスは{cls.BD_ADRS_PART_LENGTH}文字ずつ{cls.BD_ADRS_SEPALATE}で区切ってください。")
+                return None
 
             if is_hex(split_text) is False:
                 print("エラー: 設定ファイル: BDアドレスは16進文字列で指定してください。")
-                return ""
+                return None
 
-        if len(split_bd_adrs) != 6:
-            print("エラー: 設定ファイル: BDアドレスは12文字で指定してください。")
-            return ""
+        if cls.BD_ADRS_PARTS != len(split_bd_adrs):
+            print(f"エラー: 設定ファイル: BDアドレスは{cls.BD_ADRS_PARTS*cls.BD_ADRS_PART_LENGTH}文字で指定してください。")
+            return None
 
         return chk_r
 
-    def get_bd_adrs(self) -> str:
+    def get_bd_adrs(self) -> list[str]:
         """保持しているBDアドレスを取得する
 
         Returns:
             str: 空白文字|BDアドレス
         """
-        return self.__bd_adrs_m
+        return self.__bd_adrs_list_m

@@ -64,14 +64,14 @@ def test_is_hex_false(input_str: str) -> None:
 @pytest.mark.parametrize(
     "bd_address, expected_result",
     [
-        ("01:23:45:67:89:AB", "01:23:45:67:89:AB"),  # 正しい形式
-        ("11:22:33:44:55:66", "11:22:33:44:55:66"),  # 正しい形式
-        ("AA:BB:CC:DD:EE:FF", "AA:BB:CC:DD:EE:FF"),  # 正しい形式
+        ("01:23:45:67:89:AB", ["01:23:45:67:89:AB"]),  # 正しい形式
+        ("11:22:33:44:55:66", ["11:22:33:44:55:66"]),  # 正しい形式
+        ("AA:BB:CC:DD:EE:FF", ["AA:BB:CC:DD:EE:FF"]),  # 正しい形式
     ],
 )
 def test_valid_bd_adrs(sim_setting: SimSetting, bd_address: str, expected_result: str) -> None:
     # read_setting を実行
-    mock_yaml_data = yaml.dump({"info": {"bdaddress": bd_address}})
+    mock_yaml_data = yaml.dump({"info": {"bdaddress": [bd_address]}})
     with patch("builtins.open", mock_open(read_data=mock_yaml_data)):
         sim_setting.read_setting()
 
@@ -84,6 +84,8 @@ def test_valid_bd_adrs(sim_setting: SimSetting, bd_address: str, expected_result
     "invalid_bd_address",
     [
         "01:23:45:67:89",  # 不足している
+        "01-23-45-67-89",  # 区切り文字が異なる
+        "01 23 45 67 89",  # 区切り文字が異なる
         "01:23:45:67:89:GH",  # 16進数でない文字が含まれる
         "0123456789AB",  # コロンで区切られていない
         "01:23:45:67:89:ABC",  # 区切られている文字列が2文字以上の部分がある
@@ -97,7 +99,7 @@ def test_invalid_bd_adrs(sim_setting: SimSetting, invalid_bd_address: str) -> No
         sim_setting.read_setting()
 
     # BDアドレスが空文字であることを確認
-    assert sim_setting.get_bd_adrs() == ""
+    assert sim_setting.get_bd_adrs() == []
 
 
 # pytestを使ったテストの実行
