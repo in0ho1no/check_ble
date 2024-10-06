@@ -1,11 +1,13 @@
 import tkinter as tk
 from tkinter import messagebox, ttk
 
+from gui.parts_modern_button import ModernButton
+from gui.parts_modern_combobox import ModernCombobox
 from read_setting import SimSetting
 
 
-class BDAddressManagerGUI:
-    def __init__(self, master: tk.Tk, sim_setting: SimSetting):
+class BDAddressManager:
+    def __init__(self, master: tk.Toplevel, sim_setting: SimSetting):
         self.master = master
         self.sim_setting = sim_setting
 
@@ -16,22 +18,26 @@ class BDAddressManagerGUI:
         self.load_addresses(0)
 
     def create_widgets(self) -> None:
+        # BDアドレス設定フレーム
+        bdadrs_setting_frame = ttk.Frame(self.master)
+
         # コンボボックス
         self.address_var = tk.StringVar()
-        self.address_combo = ttk.Combobox(self.master, textvariable=self.address_var)
-        self.address_combo.pack(pady=10)
+        self.address_combo = ModernCombobox(bdadrs_setting_frame, textvariable=self.address_var)
 
         # ボタンフレーム
-        button_frame = tk.Frame(self.master)
-        button_frame.pack(pady=10)
+        bdadrs_setting_frame.pack(pady=10)
 
         # 追加ボタン
-        add_button = tk.Button(button_frame, text="追加", command=self.add_address)
-        add_button.pack(side=tk.LEFT, padx=5)
+        self.add_button = ModernButton(bdadrs_setting_frame, text="追加", command=self.add_address)
 
         # 削除ボタン
-        remove_button = tk.Button(button_frame, text="削除", command=self.remove_address)
-        remove_button.pack(side=tk.LEFT, padx=5)
+        self.remove_button = ModernButton(bdadrs_setting_frame, text="削除", command=self.remove_address)
+
+        # ウィジェットの配置
+        self.address_combo.pack(side=tk.LEFT, pady=5)
+        self.add_button.pack(side=tk.LEFT, padx=5)
+        self.remove_button.pack(side=tk.LEFT, padx=5)
 
     def load_addresses(self, pos: int) -> None:
         addresses = self.sim_setting.get_bd_adrs()
@@ -49,7 +55,7 @@ class BDAddressManagerGUI:
             return
 
         if self.sim_setting.add_bd_adrs(new_address):
-            # 追加したアドレスを再度設定する
+            # 追加したアドレスを表示する
             self.load_addresses(len(self.sim_setting.get_bd_adrs()) - 1)
             messagebox.showinfo("成功", f"BDアドレス '{new_address}' を追加しました。")
         else:
@@ -77,7 +83,11 @@ def main() -> None:
 
     # GUIアプリケーションを起動
     root = tk.Tk()
-    app = BDAddressManagerGUI(root, sim_setting)
+
+    # BDAddressManagerウィンドウの作成
+    bd_manager_window = tk.Toplevel(root)
+    bd_manager = BDAddressManager(bd_manager_window, sim_setting)
+
     root.mainloop()
 
 
