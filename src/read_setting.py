@@ -32,10 +32,10 @@ class SimSetting:
     def read_setting(self) -> None:
         """設定ファイルを読み込む"""
         with open(self.filepath_m) as f:
-            data_rd = yaml.safe_load(f)
+            self.data_rd = yaml.safe_load(f)
 
             self.__bd_adrs_list_m = []
-            bd_adrs_list = data_rd[self.KEY_INFO][self.KEY_BD_ADRS]
+            bd_adrs_list = self.data_rd[self.KEY_INFO][self.KEY_BD_ADRS]
             for bd_adrs in bd_adrs_list:
                 if self.__chk_bd_adrs(bd_adrs) is None:
                     continue
@@ -79,3 +79,28 @@ class SimSetting:
             str: 空白文字|BDアドレス
         """
         return self.__bd_adrs_list_m
+
+    def add_bd_adrs(self, new_bd_adrs: str) -> bool:
+        """新しいBDアドレスを追加し、yamlファイルに保存する
+
+        Args:
+            new_bd_adrs (str): 追加するBDアドレス
+
+        Returns:
+            bool: 追加成功:True, 追加失敗:False
+        """
+        if self.__chk_bd_adrs(new_bd_adrs) is None:
+            return False
+
+        if new_bd_adrs in self.__bd_adrs_list_m:
+            # print("エラー: 指定されたBDアドレスは既に存在します。")
+            return False
+
+        self.__bd_adrs_list_m.append(new_bd_adrs)
+        self.data_rd[self.KEY_INFO][self.KEY_BD_ADRS] = self.__bd_adrs_list_m
+
+        with open(self.filepath_m, "w") as f:
+            yaml.dump(self.data_rd, f, default_flow_style=False)
+
+        print(f"BDアドレス '{new_bd_adrs}' を追加しました。")
+        return True
