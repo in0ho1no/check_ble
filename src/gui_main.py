@@ -2,7 +2,7 @@ import tkinter as tk
 
 import define_main as dm
 from gui.log_viewer import LogViewer
-from gui_setting import OperationPanel
+from operation_panel import OperationPanel
 from read_setting import SimSetting
 
 
