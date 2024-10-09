@@ -33,6 +33,10 @@ class OperationPanel:
         self.scanning = False
         self.scanner: None | BleakScanner = None
 
+        # プログレスバーの制御用変数
+        self.progress_value = 0
+        self.progress_running = False
+
         self.setup_ui()
         self.load_addresses(0)
 
@@ -59,6 +63,10 @@ class OperationPanel:
         # 接続テストボタン
         self.cnct_test_button = ModernButton(ble_sim_frame, text="接続テスト", command=self.start_cnct_test)
 
+        # プログレスバーの追加
+        self.progress_frame = tk.Frame(self.master)
+        self.progress_bar = ttk.Progressbar(self.progress_frame, mode="determinate", length=100, maximum=100)
+
         # ウィジェットの配置
         scan_button_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
         self.scan_button.pack(side=tk.LEFT, padx=(0, 5))
@@ -71,6 +79,10 @@ class OperationPanel:
 
         ble_sim_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
         self.cnct_test_button.pack(side=tk.LEFT, padx=(0, 5))
+
+        # 最下部の配置
+        self.progress_frame.pack(side=tk.BOTTOM, expand=True, fill=tk.X, padx=5, pady=5)
+        self.progress_bar.pack(expand=True, fill=tk.X, padx=5)
 
     def load_addresses(self, pos: int) -> None:
         addresses = self.sim_setting.get_bd_adrs()
@@ -114,12 +126,30 @@ class OperationPanel:
         self.disable_buttons()
         self.stop_button.config(state="normal")
         self.scanning = True
+        self.start_progress()
         asyncio.run_coroutine_threadsafe(self.run_scanner(), self.loop)
 
     def stop_scan(self) -> None:
         self.scanning = False
         self.log_viewer.add_log("情報", "スキャンを停止中...")
         self.stop_button.config(state="disabled")
+        self.stop_progress()
+
+    def start_progress(self) -> None:
+        self.progress_running = True
+        self.progress_value = 0
+        self.update_progress()
+
+    def stop_progress(self) -> None:
+        self.progress_running = False
+        self.progress_value = 0
+        self.progress_bar["value"] = 0
+
+    def update_progress(self) -> None:
+        if self.progress_running:
+            self.progress_value = (self.progress_value + 2) % 101  # 0-100の範囲で循環
+            self.progress_bar["value"] = self.progress_value
+            self.master.after(50, self.update_progress)
 
     async def run_scanner(self) -> None:
         self.log_viewer.add_log("情報", "スキャンを開始しました...")
@@ -145,11 +175,13 @@ class OperationPanel:
             self.scanner = None
             self.log_viewer.add_log("情報", "スキャンを停止しました。")
             self.master.after(0, self.reset_buttons)
+            self.master.after(0, self.stop_progress)
 
     def reset_buttons(self) -> None:
         self.scan_button.config(state="normal")
         self.stop_button.config(state="disabled")
         self.cnct_test_button.config(state="normal")
+        self.stop_progress()
 
     def disable_buttons(self) -> None:
         self.scan_button.config(state="disabled")
@@ -157,6 +189,7 @@ class OperationPanel:
 
     def start_cnct_test(self) -> None:
         self.disable_buttons()
+        self.start_progress()
         asyncio.run_coroutine_threadsafe(self.connection_test(), self.loop)
 
     async def connection_test(self) -> None:
@@ -176,3 +209,4 @@ class OperationPanel:
             self.log_viewer.add_log("エラー", f"エラーが発生しました。: {str(e)}")
         finally:
             self.master.after(0, self.reset_buttons)
+            self.master.after(0, self.stop_progress)
