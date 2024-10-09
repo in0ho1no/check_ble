@@ -1,3 +1,4 @@
+import tkinter as tk
 from tkinter import ttk
 from typing import Any
 
@@ -38,6 +39,9 @@ class ModernTreeview(ttk.Treeview):
         self.initialize_style()
         # カスタムスタイルを利用する
         super().__init__(master, style=self.STYLE_ID, **kw)
+
+        self.text: None | tk.Text = None
+        self.bind("<Double-1>", self.on_double_click)
 
     @classmethod
     def initialize_style(cls) -> None:
@@ -87,3 +91,35 @@ class ModernTreeview(ttk.Treeview):
 
         # 初期設定完了
         cls.style_initialized = True
+
+    def on_double_click(self, event: tk.Event) -> None:
+        region = self.identify("region", event.x, event.y)
+        if region == "cell":
+            column = self.identify_column(event.x)
+            item = self.identify_row(event.y)
+
+            bbox = self.bbox(item, column)
+            if bbox:
+                x, y, width, height = bbox
+
+            value = self.set(item, column)
+
+            if self.text is None:
+                self.text = tk.Text(self, wrap=tk.NONE, borderwidth=0, highlightthickness=0, font=self.FONT)
+                self.text.config(state=tk.DISABLED)  # 読み取り専用に設定
+
+            self.text.place(x=x, y=y, width=width, height=height)
+            self.text.config(state=tk.NORMAL)  # 一時的に編集可能にして内容を設定
+            self.text.delete("1.0", tk.END)
+            self.text.insert("1.0", value)
+            self.text.config(state=tk.DISABLED)  # 再び読み取り専用に設定
+            self.text.focus_set()
+            self.text.tag_add(tk.SEL, "1.0", tk.END)  # すべてのテキストを選択状態にする
+            self.text.bind("<FocusOut>", self.on_focus_out)
+            self.text.bind("<Return>", self.on_focus_out)
+            self.text.bind("<Escape>", self.on_focus_out)
+
+    def on_focus_out(self, _: tk.Event) -> None:
+        if self.text is not None:
+            self.text.place_forget()
+            self.text = None
