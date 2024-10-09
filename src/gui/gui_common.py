@@ -1,3 +1,16 @@
+# window用定義
+PATH_ICON = r"src\ico\ble-sim-24px.ico"
+
+TITLE_MAIN = "BLE通信sim"
+TITLE_LOG = "通信ログビューア"
+
+POS_MAIN_X = 100
+POS_MAIN_Y = 100
+
+POS_LOG_X = POS_MAIN_X
+POS_LOG_Y = POS_MAIN_Y + 100
+
+# parts用定義
 COMMON_FONT = "メイリオ"
 COMMON_FONT_SIZE = 10
 

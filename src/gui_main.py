@@ -7,6 +7,9 @@ from typing import Any
 
 from bleak import BleakScanner
 
+import define_main as dm
+import gui.gui_common as gc
+from gui.log_viewer import LogViewer as LoVi
 from gui.parts_modern_button import ModernButton
 from gui.parts_modern_checkbutton import ModernCheckbutton
 from gui.parts_modern_scrollbar import ModernScrollbar
@@ -14,18 +17,13 @@ from gui.parts_modern_treeview import ModernTreeview
 from gui_setting import BDAddressManager
 from read_setting import SimSetting
 
-PATH_ICON = r"src\ico\ble-sim-24px.ico"
-PATH_SETTING = r"src\settings\setting.yaml"
-
-GUI_TITLE = "通信ログビューア"
-
 
 class LogViewer:
     def __init__(self, master: tk.Toplevel) -> None:
         self.master = master
-        self.master.title(GUI_TITLE)
-        self.master.iconbitmap(PATH_ICON)
-        self.master.geometry("+100+100")
+        self.master.title(gc.TITLE_LOG)
+        self.master.iconbitmap(gc.PATH_ICON)
+        self.master.geometry(f"+{gc.POS_LOG_X}+{gc.POS_LOG_Y}")
 
         # ログのカウンター
         self.log_counter = 0
@@ -102,12 +100,12 @@ class LogViewer:
         self.operation_frame.pack(side=tk.BOTTOM, expand=True, fill=tk.BOTH, padx=10, pady=(0, 10))
 
         self.button_frame.pack(side=tk.LEFT, padx=5)
-        self.scan_button.pack(side=tk.LEFT, anchor=tk.W, padx=(0, 5))
-        self.stop_button.pack(side=tk.LEFT, anchor=tk.E, padx=(0, 5))
+        self.scan_button.pack(side=tk.LEFT, anchor=tk.W)
+        self.stop_button.pack(side=tk.LEFT, anchor=tk.E)
 
         self.option_frame.pack(side=tk.RIGHT, padx=5)
-        self.clear_button.pack(side=tk.TOP, pady=5)
-        self.auto_scroll_check.pack(side=tk.BOTTOM, pady=5)
+        self.clear_button.pack(side=tk.LEFT, padx=(0, 5))
+        self.auto_scroll_check.pack(side=tk.RIGHT, padx=(0, 5))
 
     def add_log(self, log: str) -> None:
         self.master.after(0, self._add_log, log)
@@ -193,24 +191,25 @@ class BLEManager:
         self.root.withdraw()  # メインウィンドウを非表示にする
 
         # SimSettingインスタンスを作成
-        self.sim_setting = SimSetting(PATH_SETTING)
+        self.sim_setting = SimSetting(dm.PATH_SETTING)
 
         # LogViewerウィンドウの作成
         self.log_viewer_window = tk.Toplevel(self.root)
-        self.log_viewer = LogViewer(self.log_viewer_window)
+        # self.log_viewer = LogViewer(self.log_viewer_window)
+        self.log_viewer = LoVi(self.log_viewer_window)
 
         # BDAddressManagerウィンドウの作成
         self.bd_manager_window = tk.Toplevel(self.root)
-        self.bd_manager = BDAddressManager(self.bd_manager_window, self.sim_setting)
+        self.bd_manager = BDAddressManager(self.bd_manager_window, self.sim_setting, self.log_viewer)
 
         # ウィンドウが閉じられたときの処理
         self.log_viewer_window.protocol("WM_DELETE_WINDOW", self.on_closing)
         self.bd_manager_window.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def on_closing(self) -> None:
-        if self.log_viewer.scanning:
-            self.log_viewer.stop_scan()
-        self.log_viewer.loop.call_soon_threadsafe(self.log_viewer.loop.stop)
+        # if self.log_viewer.scanning:
+        #     self.log_viewer.stop_scan()
+        # self.log_viewer.loop.call_soon_threadsafe(self.log_viewer.loop.stop)
         self.root.destroy()
 
     def run(self) -> None:
