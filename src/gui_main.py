@@ -214,7 +214,7 @@ class BLEManager:
 
     def run(self) -> None:
         # 初期ログメッセージを追加
-        self.log_viewer.add_log("アプリケーションを起動しました。")
+        self.log_viewer.add_log("情報", "アプリケーションを起動しました。")
         self.root.mainloop()
 
 

@@ -29,7 +29,7 @@ class LogViewer:
         self.main_frame = ttk.Frame(self.master)
 
         # Treeviewの設定
-        self.tree = ModernTreeview(self.main_frame, columns=("No", "Timestamp", "Log"), show="headings")
+        self.tree = ModernTreeview(self.main_frame, columns=("No", "Timestamp", "Type", "Log"), show="headings")
         self.setup_tree_columns()
 
         # スクロールバーの追加
@@ -52,9 +52,11 @@ class LogViewer:
         # 列の設定
         self.tree.heading("No", text="No.")
         self.tree.heading("Timestamp", text="タイムスタンプ")
+        self.tree.heading("Type", text="種別")
         self.tree.heading("Log", text="ログ")
-        self.tree.column("No", width=50, minwidth=50, anchor="center", stretch=False)
+        self.tree.column("No", width=50, minwidth=50, anchor="e", stretch=False)
         self.tree.column("Timestamp", width=150, minwidth=150, anchor="center", stretch=False)
+        self.tree.column("Type", width=50, minwidth=50, anchor="w", stretch=False)
         self.tree.column("Log", width=400)
 
         # 背景色の交互設定
@@ -72,15 +74,15 @@ class LogViewer:
         self.clear_button.pack(side=tk.LEFT, padx=5, pady=5)
         self.auto_scroll_check.pack(side=tk.RIGHT, padx=5, pady=5)
 
-    def add_log(self, log: str) -> None:
-        self.master.after(0, self._add_log, log)
+    def add_log(self, type: str, log: str) -> None:
+        self.master.after(0, self._add_log, type, log)
 
-    def _add_log(self, log: str) -> None:
+    def _add_log(self, type: str, log: str) -> None:
         # ログ追加
         self.log_counter += 1
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         tags = ("even",) if self.log_counter % 2 == 0 else ("odd",)
-        self.tree.insert("", "end", values=(self.log_counter, timestamp, log), tags=tags)
+        self.tree.insert("", "end", values=(self.log_counter, timestamp, type, log), tags=tags)
 
         # 自動スクロールが有効な場合のみ最下部にスクロール
         if self.auto_scroll.get():
@@ -89,7 +91,7 @@ class LogViewer:
     def clear_log(self) -> None:
         self.tree.delete(*self.tree.get_children())
         self.log_counter = 0
-        self.add_log("ログをクリアしました。")
+        self.add_log("情報", "ログをクリアしました。")
 
     def custom_scroll(self, *args: Any) -> None:
         # スクロールバーの動作をカスタマイズ

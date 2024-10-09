@@ -55,24 +55,24 @@ class BDAddressManager:
     def add_address(self) -> None:
         new_address = self.address_var.get()
         if not new_address:
-            self.log_viewer.add_log("エラー: BDアドレスが入力されていません。")
+            self.log_viewer.add_log("エラー", "BDアドレスが入力されていません。")
             return
 
         if self.sim_setting.add_bd_adrs(new_address):
             # 追加したアドレスを表示する
             self.load_addresses(len(self.sim_setting.get_bd_adrs()) - 1)
-            self.log_viewer.add_log(f"成功: BDアドレス '{new_address}' を追加しました。")
+            self.log_viewer.add_log("情報", f"BDアドレス '{new_address}' を追加しました。")
         else:
-            self.log_viewer.add_log("エラー: BDアドレスの追加に失敗しました。")
+            self.log_viewer.add_log("エラー", "BDアドレスの追加に失敗しました。")
 
     def remove_address(self) -> None:
         address_to_remove = self.address_var.get()
         if not address_to_remove:
-            self.log_viewer.add_log("エラー: 削除するBDアドレスを選択してください。")
+            self.log_viewer.add_log("エラー", "削除するBDアドレスを選択してください。")
             return
 
         if self.sim_setting.remove_bd_adrs(address_to_remove):
             self.load_addresses(0)
-            self.log_viewer.add_log(f"成功: BDアドレス '{address_to_remove}' を削除しました。")
+            self.log_viewer.add_log("情報", f"BDアドレス '{address_to_remove}' を削除しました。")
         else:
-            self.log_viewer.add_log("エラー: BDアドレスの削除に失敗しました。")
+            self.log_viewer.add_log("エラー", "BDアドレスの削除に失敗しました。")
