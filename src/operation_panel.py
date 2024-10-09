@@ -3,9 +3,10 @@ import threading
 import tkinter as tk
 from tkinter import ttk
 
-from bleak import BleakScanner
+from bleak import BleakError, BleakScanner
 
 import gui.gui_common as gc
+from connect import test_client
 from gui.log_viewer import LogViewer
 from gui.parts_modern_button import ModernButton
 from gui.parts_modern_combobox import ModernCombobox
@@ -53,6 +54,11 @@ class OperationPanel:
         # 削除ボタン
         self.remove_button = ModernButton(bdadrs_setting_frame, text="削除", command=self.remove_address)
 
+        # 指定端末と通信フレーム
+        ble_sim_frame = ModernLabelframe(self.master, text="指定アドレスと通信")
+        # 接続テストボタン
+        self.cnct_test_button = ModernButton(ble_sim_frame, text="接続テスト", command=self.start_cnct_test)
+
         # ウィジェットの配置
         scan_button_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
         self.scan_button.pack(side=tk.LEFT, padx=(0, 5))
@@ -62,6 +68,9 @@ class OperationPanel:
         self.address_combo.pack(side=tk.LEFT, padx=(0, 5))
         self.add_button.pack(side=tk.LEFT, padx=(0, 5))
         self.remove_button.pack(side=tk.LEFT, padx=(0, 5))
+
+        ble_sim_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
+        self.cnct_test_button.pack(side=tk.LEFT, padx=(0, 5))
 
     def load_addresses(self, pos: int) -> None:
         addresses = self.sim_setting.get_bd_adrs()
@@ -102,7 +111,7 @@ class OperationPanel:
         self.loop.run_forever()
 
     def start_scan(self) -> None:
-        self.scan_button.config(state="disabled")
+        self.disable_buttons()
         self.stop_button.config(state="normal")
         self.scanning = True
         asyncio.run_coroutine_threadsafe(self.run_scanner(), self.loop)
@@ -140,3 +149,30 @@ class OperationPanel:
     def reset_buttons(self) -> None:
         self.scan_button.config(state="normal")
         self.stop_button.config(state="disabled")
+        self.cnct_test_button.config(state="normal")
+
+    def disable_buttons(self) -> None:
+        self.scan_button.config(state="disabled")
+        self.cnct_test_button.config(state="disabled")
+
+    def start_cnct_test(self) -> None:
+        self.disable_buttons()
+        asyncio.run_coroutine_threadsafe(self.connection_test(), self.loop)
+
+    async def connection_test(self) -> None:
+        bd_adrs = self.address_combo.get()
+        if bd_adrs is None:
+            return False
+
+        # 対象と接続
+        try:
+            self.log_viewer.add_log("情報", f"{bd_adrs}との接続テストを開始します。")
+            await test_client(bd_adrs)
+        except asyncio.exceptions.CancelledError:
+            self.log_viewer.add_log("エラー", "中断しました。再実行してください。")
+        except asyncio.exceptions.TimeoutError:
+            self.log_viewer.add_log("情報", "テスト接続を終了しました。")
+        except BleakError as e:
+            self.log_viewer.add_log("エラー", f"エラーが発生しました。: {str(e)}")
+        finally:
+            self.master.after(0, self.reset_buttons)

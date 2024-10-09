@@ -169,6 +169,46 @@ async def connect_device(device_r: BLEDevice) -> None:
         await client.disconnect()
 
 
+async def test_client(bd_addr: str) -> None:
+    """指定されたBDアドレスのデバイスと接続する
+
+    Args:
+        device_r (BLEDevice): 接続したいBLEDevice
+    """
+
+    def handle_disconnect(_: BleakClient) -> None:
+        """実行中のタスクを中断して終了する
+
+        Args:
+            _ (BleakClient): 読み捨て
+        """
+        print("Device was disconnected, goodbye.")
+        for task in asyncio.all_tasks():
+            task.cancel()
+
+    def handle_notification(_: BleakGATTCharacteristic, data: bytearray) -> None:
+        """ペリフェラルのnotifyを表示する
+
+        Args:
+            _ (BleakGATTCharacteristic): 読み捨て
+            data (bytearray): notifyの受信値
+        """
+        print(f"notify: {data}")
+
+    print("Connecting...")
+    async with BleakClient(
+        bd_addr,
+        disconnected_callback=handle_disconnect,
+        winrt={"use_cached_services": True},
+    ) as client:
+        print("Connected")
+
+        show_client_info(client)
+
+        print("Diconnect...")
+        await client.disconnect()
+
+
 async def main() -> bool:
     """Bleakメイン処理
 
@@ -176,8 +216,8 @@ async def main() -> bool:
         bool: True: 再度実行する, False: 終了する
     """
     sim_setting = SimSetting(FILE_NAME_SETTING)
-    bd_adrs = sim_setting.get_bd_adrs()
-    if "" == bd_adrs:
+    bd_adrs = sim_setting.get_bd_adrs()[0]
+    if bd_adrs is None:
         return False
 
     # 接続対象のスキャン
