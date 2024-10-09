@@ -5,26 +5,22 @@ from typing import Any, Optional
 from . import gui_common as gc
 
 
-class ModernCombobox(ttk.Combobox):
-    """コンボボックスのカスタムクラス
+class ModernLabelframe(ttk.Labelframe):
+    """ラベルフレームのカスタムクラス
 
     Args:
-        ttk (_type_): ttk.Comboboxを継承する
+        ttk (_type_): ttk.Labelframeを継承する
     """
 
     # スタイルの定数をクラスレベルで定義
-    STYLE_ID = "Modern.Combobox"
+    STYLE_ID = "Modern.Labelframe"
+    STYLE_ID_LABEL = STYLE_ID + "." + "Label"
     FONT = (gc.COMMON_FONT, gc.COMMON_FONT_SIZE)
-    COLOR_BG = gc.COMMON_BG
-    COLOR_BG_MOUSE_OVER = gc.COMMON_BG_MOUSE_OVER
-    COLOR_FONT = gc.COMMON_FG
-
-    COLOR_FG_DISABLE = "#FFFFFF"
 
     # スタイルは1度だけ定義して再利用
     style_initialized = False
 
-    def __init__(self, master: Optional[tk.Widget], **kw: Any) -> None:
+    def __init__(self, master: Optional[tk.Widget] | tk.Toplevel, **kw: Any) -> None:
         # スタイルを初期化
         self.initialize_style()
         # カスタムスタイルを利用する
@@ -37,17 +33,20 @@ class ModernCombobox(ttk.Combobox):
             return
 
         style = ttk.Style()
-        style.theme_use("alt")
         style.layout(
             cls.STYLE_ID,
-            style.layout("TCombobox"),  # 標準レイアウトを継承
+            style.layout("TLabelframe"),  # 標準レイアウトを継承
         )
 
+        # ボタンのデフォルトスタイルの設定
         style.configure(
             cls.STYLE_ID,
+            padding=5,  # 内側のパディング
+            borderwidth=0,
+        )
+        style.configure(
+            cls.STYLE_ID_LABEL,
             font=cls.FONT,
-            background=cls.COLOR_BG,
-            foreground=cls.COLOR_FONT,
         )
 
         cls.style_initialized = True

@@ -9,6 +9,7 @@ import gui.gui_common as gc
 from gui.log_viewer import LogViewer
 from gui.parts_modern_button import ModernButton
 from gui.parts_modern_combobox import ModernCombobox
+from gui.parts_modern_label_frame import ModernLabelframe
 from read_setting import SimSetting
 
 
@@ -36,14 +37,14 @@ class OperationPanel:
 
     def setup_ui(self) -> None:
         # ボタンフレームの作成
-        scan_button_frame = ttk.Frame(self.master)
+        scan_button_frame = ModernLabelframe(self.master, text="アドバタイズパケット")
         # スキャン開始ボタン
         self.scan_button = ModernButton(scan_button_frame, text="スキャン開始", command=self.start_scan)
         # スキャン停止ボタン
         self.stop_button = ModernButton(scan_button_frame, text="スキャン停止", command=self.stop_scan, state="disabled")
 
         # BDアドレス設定フレーム
-        bdadrs_setting_frame = ttk.Frame(self.master)
+        bdadrs_setting_frame = ModernLabelframe(self.master, text="BDアドレス設定")
         # コンボボックス
         self.address_var = tk.StringVar()
         self.address_combo = ModernCombobox(bdadrs_setting_frame, textvariable=self.address_var)
@@ -53,14 +54,14 @@ class OperationPanel:
         self.remove_button = ModernButton(bdadrs_setting_frame, text="削除", command=self.remove_address)
 
         # ウィジェットの配置
-        scan_button_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=10)
-        self.scan_button.pack(side=tk.LEFT)
-        self.stop_button.pack(side=tk.LEFT)
+        scan_button_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
+        self.scan_button.pack(side=tk.LEFT, padx=(0, 5))
+        self.stop_button.pack(side=tk.LEFT, padx=(0, 5))
 
-        bdadrs_setting_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=10)
-        self.address_combo.pack(side=tk.LEFT, pady=5)
-        self.add_button.pack(side=tk.LEFT, padx=5)
-        self.remove_button.pack(side=tk.LEFT, padx=5)
+        bdadrs_setting_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
+        self.address_combo.pack(side=tk.LEFT, padx=(0, 5))
+        self.add_button.pack(side=tk.LEFT, padx=(0, 5))
+        self.remove_button.pack(side=tk.LEFT, padx=(0, 5))
 
     def load_addresses(self, pos: int) -> None:
         addresses = self.sim_setting.get_bd_adrs()

@@ -1,6 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-from typing import Any
+from typing import Any, Optional
 
 from . import gui_common as gc
 
@@ -25,7 +25,7 @@ class ModernButton(ttk.Button):
     # スタイルは1度だけ定義して再利用
     style_initialized = False
 
-    def __init__(self, master: ttk.Frame, **kw: Any) -> None:
+    def __init__(self, master: Optional[tk.Widget], **kw: Any) -> None:
         # スタイルを初期化
         self.initialize_style()
         # カスタムスタイルを利用する
