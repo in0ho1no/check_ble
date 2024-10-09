@@ -56,7 +56,7 @@ class LogViewer:
         self.tree.heading("Log", text="ログ")
         self.tree.column("No", width=50, minwidth=50, anchor="e", stretch=False)
         self.tree.column("Timestamp", width=150, minwidth=150, anchor="center", stretch=False)
-        self.tree.column("Type", width=50, minwidth=50, anchor="w", stretch=False)
+        self.tree.column("Type", width=100, minwidth=100, anchor="w", stretch=False)
         self.tree.column("Log", width=400)
 
         # 背景色の交互設定
