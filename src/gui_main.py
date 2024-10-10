@@ -15,11 +15,11 @@ class BLEManager:
         # SimSettingインスタンスを作成
         self.sim_setting = SimSetting(dm.PATH_SETTING)
 
-        # LogViewerウィンドウの作成
+        # ログウィンドウの作成
         self.log_viewer_window = tk.Toplevel(self.root)
         self.log_viewer = LogViewer(self.log_viewer_window)
 
-        # BDAddressManagerウィンドウの作成
+        # 操作パネルウィンドウの作成
         self.operation_panel_window = tk.Toplevel(self.root)
         self.operation_panel = OperationPanel(self.operation_panel_window, self.sim_setting, self.log_viewer)
 
