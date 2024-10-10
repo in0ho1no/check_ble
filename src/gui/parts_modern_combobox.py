@@ -37,7 +37,6 @@ class ModernCombobox(ttk.Combobox):
             return
 
         style = ttk.Style()
-        style.theme_use("alt")
         style.layout(
             cls.STYLE_ID,
             style.layout("TCombobox"),  # 標準レイアウトを継承
@@ -46,8 +45,22 @@ class ModernCombobox(ttk.Combobox):
         style.configure(
             cls.STYLE_ID,
             font=cls.FONT,
-            background=cls.COLOR_BG,
+            background=cls.COLOR_BG,  # コンボボックスの矢印の背景色
             foreground=cls.COLOR_FONT,
+            arrowcolor=cls.COLOR_FONT,
+            padding=[5, 0, 0, 0],
+            relief=tk.FLAT,
+        )
+
+        # 異なる状態でのスタイルをマッピング
+        style.map(
+            cls.STYLE_ID,
+            background=[
+                ("focus", cls.COLOR_BG_MOUSE_OVER),  # フォーカス時の背景色
+            ],
+            fieldbackground=[  # テキストエリアの背景色
+                ("readonly", cls.COLOR_BG),
+            ],
         )
 
         cls.style_initialized = True

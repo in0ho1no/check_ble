@@ -44,6 +44,9 @@ class OperationPanel:
         self.scan_button = ModernButton(scan_button_frame, text="スキャン開始", command=self.start_scan)
         # スキャン停止ボタン
         self.stop_button = ModernButton(scan_button_frame, text="スキャン停止", command=self.stop_scan, state="disabled")
+        # 部品配置
+        self.scan_button.pack(side=tk.LEFT, padx=(0, 5))
+        self.stop_button.pack(side=tk.LEFT, padx=(0, 5))
 
         # BDアドレス設定フレーム
         bdadrs_setting_frame = ModernLabelframe(self.master, text="BDアドレス設定")
@@ -54,32 +57,75 @@ class OperationPanel:
         self.add_button = ModernButton(bdadrs_setting_frame, text="追加", command=self.add_address)
         # 削除ボタン
         self.remove_button = ModernButton(bdadrs_setting_frame, text="削除", command=self.remove_address)
-
-        # 指定端末と通信フレーム
-        ble_sim_frame = ModernLabelframe(self.master, text="指定アドレスと通信")
-        # 接続テストボタン
-        self.cnct_test_button = ModernButton(ble_sim_frame, text="接続テスト", command=self.start_cnct_test)
-
-        # プログレスバーの追加
-        self.progress_frame = tk.Frame(self.master)
-        self.progress_bar = ttk.Progressbar(self.progress_frame, mode="determinate", length=100, maximum=100)
-
-        # ウィジェットの配置
-        scan_button_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
-        self.scan_button.pack(side=tk.LEFT, padx=(0, 5))
-        self.stop_button.pack(side=tk.LEFT, padx=(0, 5))
-
-        bdadrs_setting_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
+        # 部品配置
         self.address_combo.pack(side=tk.LEFT, padx=(0, 5))
         self.add_button.pack(side=tk.LEFT, padx=(0, 5))
         self.remove_button.pack(side=tk.LEFT, padx=(0, 5))
 
-        ble_sim_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
-        self.cnct_test_button.pack(side=tk.LEFT, padx=(0, 5))
+        # 指定端末と通信フレーム
+        ble_sim_frame = ModernLabelframe(self.master, text="指定アドレスと通信")
+        # 接続テストボタン
+        cnct_test_frame = tk.Frame(ble_sim_frame)
+        self.cnct_test_button = ModernButton(cnct_test_frame, text="接続テスト", command=self.start_cnct_test)
+        self.cnct_test_button.pack(side=tk.LEFT)
+        cnct_test_frame.pack(side=tk.TOP, padx=1, pady=5, fill=tk.X)
+        # コマンド設定
+        cmnd_frame = tk.Frame(ble_sim_frame)
+        cmnd_frame.pack(side=tk.BOTTOM, expand=True, fill=tk.BOTH, padx=1, pady=5)
+        # 送信ボタン
+        self.send_button = ModernButton(cmnd_frame, text="接続", command=self.send_command)
+        self.send_button.pack(side=tk.BOTTOM, pady=2)
+        # 値入力
+        self.input_text = tk.Entry(cmnd_frame, highlightthickness=0, font=(gc.COMMON_FONT, gc.COMMON_FONT_SIZE))
+        self.input_text.pack(side=tk.BOTTOM, pady=2)
+        # タイプ設定
+        type_frame = tk.Frame(cmnd_frame)
+        type_label = tk.Label(type_frame, text="Type")
+        self.type_var = tk.StringVar()
+        self.type_combo = ModernCombobox(type_frame, state="readonly", width=5, textvariable=self.type_var, values=[f"{i:02X}" for i in range(16)])
+        self.type_combo.current(0)
+        type_label.pack(side=tk.TOP)
+        self.type_combo.pack(side=tk.BOTTOM)
+        type_frame.pack(side=tk.LEFT, padx=(0, 5))
+        # タイプ設定2
+        type_frame2 = tk.Frame(cmnd_frame)
+        type_label2 = tk.Label(type_frame2, text="Type2")
+        self.type_var2 = tk.StringVar()
+        self.type_combo2 = ModernCombobox(type_frame2, state="readonly", width=5, textvariable=self.type_var2, values=[f"{i:02X}" for i in range(32)])
+        self.type_combo2.current(0)
+        type_label2.pack(side=tk.TOP)
+        self.type_combo2.pack(side=tk.BOTTOM)
+        type_frame2.pack(side=tk.LEFT, padx=(0, 5))
+        # 種別設定
+        get_set_frame = tk.Frame(cmnd_frame)
+        get_set_label = tk.Label(get_set_frame, text="get_set")
+        self.get_set_var = tk.StringVar()
+        self.get_set_combo = ModernCombobox(get_set_frame, state="readonly", width=5, textvariable=self.get_set_var, values=["get", "set"])
+        self.get_set_combo.current(0)
+        get_set_label.pack(side=tk.TOP)
+        self.get_set_combo.pack(side=tk.BOTTOM)
+        get_set_frame.pack(side=tk.LEFT, padx=(0, 5))
+        # 種別設定2
+        get_set_frame2 = tk.Frame(cmnd_frame)
+        get_set_label2 = tk.Label(get_set_frame2, text="get_set2")
+        self.get_set_var2 = tk.StringVar()
+        self.get_set_combo2 = ModernCombobox(get_set_frame2, state="readonly", width=5, textvariable=self.get_set_var2, values=["get2", "set2"])
+        self.get_set_combo2.current(0)
+        get_set_label2.pack(side=tk.TOP)
+        self.get_set_combo2.pack(side=tk.BOTTOM)
+        get_set_frame2.pack(side=tk.LEFT, padx=(0, 5))
 
-        # 最下部の配置
-        self.progress_frame.pack(side=tk.BOTTOM, expand=True, fill=tk.X, padx=5, pady=5)
+        # プログレスバーの追加
+        progress_frame = tk.Frame(self.master)
+        self.progress_bar = ttk.Progressbar(progress_frame, mode="determinate", length=100, maximum=100)
+        # 部品配置
         self.progress_bar.pack(expand=True, fill=tk.X, padx=5)
+
+        # ウィジェットの配置
+        scan_button_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
+        bdadrs_setting_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
+        ble_sim_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
+        progress_frame.pack(side=tk.BOTTOM, expand=True, fill=tk.X, padx=5, pady=5)
 
     def load_addresses(self, pos: int) -> None:
         addresses = self.sim_setting.get_bd_adrs()
@@ -182,3 +228,8 @@ class OperationPanel:
 
         self.master.after(0, self.reset_buttons)
         self.master.after(0, self.stop_progress)
+
+    def send_command(self) -> None:
+        self.log_viewer.add_log(
+            "情報", f"{self.type_combo.get()},{self.type_combo2.get()},{self.get_set_combo.get()},{self.get_set_combo2.get()},{self.input_text.get()}"
+        )
