@@ -28,7 +28,7 @@ class BLEManager:
         self.operation_panel_window.protocol("WM_DELETE_WINDOW", self.on_closing)
 
     def on_closing(self) -> None:
-        if self.operation_panel.scanning:
+        if self.operation_panel.ble_client.scanning:
             self.operation_panel.stop_scan()
         self.operation_panel.loop.call_soon_threadsafe(self.operation_panel.loop.stop)
         self.root.destroy()

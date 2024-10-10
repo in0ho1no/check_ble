@@ -3,10 +3,8 @@ import threading
 import tkinter as tk
 from tkinter import ttk
 
-from bleak import BleakError, BleakScanner
-
 import gui.gui_common as gc
-from connect import test_client
+from ble_client import BleClient
 from gui.log_viewer import LogViewer
 from gui.parts_modern_button import ModernButton
 from gui.parts_modern_combobox import ModernCombobox
@@ -29,9 +27,8 @@ class OperationPanel:
         self.thread = threading.Thread(target=self.run_async_loop, daemon=True)
         self.thread.start()
 
-        # スキャン制御用の変数
-        self.scanning = False
-        self.scanner: None | BleakScanner = None
+        # BLEクライアント準備
+        self.ble_client = BleClient(self.log_viewer)
 
         # プログレスバーの制御用変数
         self.progress_value = 0
@@ -125,15 +122,19 @@ class OperationPanel:
     def start_scan(self) -> None:
         self.disable_buttons()
         self.stop_button.config(state="normal")
-        self.scanning = True
         self.start_progress()
         asyncio.run_coroutine_threadsafe(self.run_scanner(), self.loop)
 
     def stop_scan(self) -> None:
-        self.scanning = False
         self.log_viewer.add_log("情報", "スキャンを停止中...")
+        self.ble_client.stop_scanner()
         self.stop_button.config(state="disabled")
         self.stop_progress()
+
+    async def run_scanner(self) -> None:
+        await self.ble_client.advertise_scanner()
+        self.master.after(0, self.reset_buttons)
+        self.master.after(0, self.stop_progress)
 
     def start_progress(self) -> None:
         self.progress_running = True
@@ -150,32 +151,6 @@ class OperationPanel:
             self.progress_value = (self.progress_value + 2) % 101  # 0-100の範囲で循環
             self.progress_bar["value"] = self.progress_value
             self.master.after(50, self.update_progress)
-
-    async def run_scanner(self) -> None:
-        self.log_viewer.add_log("情報", "スキャンを開始しました...")
-
-        bd_adrs_list = []
-        self.scanner = BleakScanner()
-
-        try:
-            async with self.scanner:
-                n = 5
-                while self.scanning:
-                    devices = await self.scanner.discover(timeout=1.0)
-                    for device in devices:
-                        if device.address not in bd_adrs_list:
-                            bd_adrs_list.append(device.address)
-
-                            found = len(device.name or "") > n
-                            log_message = f" Found{' it' if found else ''} {device!r}"
-                            self.log_viewer.add_log("スキャン", log_message)
-        except Exception as e:
-            self.log_viewer.add_log("エラー", f"スキャン中にエラーが発生しました: {str(e)}")
-        finally:
-            self.scanner = None
-            self.log_viewer.add_log("情報", "スキャンを停止しました。")
-            self.master.after(0, self.reset_buttons)
-            self.master.after(0, self.stop_progress)
 
     def reset_buttons(self) -> None:
         self.scan_button.config(state="normal")
@@ -198,15 +173,12 @@ class OperationPanel:
             return False
 
         # 対象と接続
-        try:
-            self.log_viewer.add_log("情報", f"{bd_adrs}との接続テストを開始します。")
-            await test_client(bd_adrs)
-        except asyncio.exceptions.CancelledError:
-            self.log_viewer.add_log("エラー", "中断しました。再実行してください。")
-        except asyncio.exceptions.TimeoutError:
-            self.log_viewer.add_log("情報", "テスト接続を終了しました。")
-        except BleakError as e:
-            self.log_viewer.add_log("エラー", f"エラーが発生しました。: {str(e)}")
-        finally:
-            self.master.after(0, self.reset_buttons)
-            self.master.after(0, self.stop_progress)
+        self.log_viewer.add_log("情報", f"{bd_adrs}との接続テストを開始します。")
+        result = await self.ble_client.test_client(bd_adrs)
+        if result is True:
+            self.log_viewer.add_log("情報", "接続に成功しました。")
+        else:
+            self.log_viewer.add_log("エラー", "接続に失敗しました。")
+
+        self.master.after(0, self.reset_buttons)
+        self.master.after(0, self.stop_progress)
