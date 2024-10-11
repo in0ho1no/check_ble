@@ -22,6 +22,7 @@ class OperationPanel:
         self.master.iconbitmap(gc.PATH_ICON)
         self.master.title(gc.TITLE_MAIN)
         self.master.geometry(f"+{gc.POS_MAIN_X}+{gc.POS_MAIN_Y}")
+        self.master.resizable(False, False)
 
         # 非同期ループのためのイベントループ
         self.connection_task: None | concurrent.futures.Future = None
@@ -68,60 +69,63 @@ class OperationPanel:
         self.add_button.pack(side=tk.LEFT, padx=(0, 5))
         self.remove_button.pack(side=tk.LEFT, padx=(0, 5))
 
-        # 指定端末と通信フレーム
-        ble_sim_frame = ModernLabelframe(self.master, text="指定アドレスと通信")
-        # 接続テストボタン
-        cnct_test_frame = tk.Frame(ble_sim_frame)
-        self.cnct_test_button = ModernButton(cnct_test_frame, text="接続テスト", command=self.start_cnct_test)
-        self.cnct_test_button.pack(side=tk.LEFT)
-        self.cnct_cancel_button = ModernButton(cnct_test_frame, text="中断", command=self.cancel_cnct_test, state="disabled")
-        self.cnct_cancel_button.pack(side=tk.LEFT)
-        cnct_test_frame.pack(side=tk.TOP, padx=1, pady=5, fill=tk.X)
-        # コマンド設定
-        cmnd_frame = tk.Frame(ble_sim_frame)
-        cmnd_frame.pack(side=tk.BOTTOM, expand=True, fill=tk.BOTH, padx=1, pady=5)
-        # 送信ボタン
-        self.send_button = ModernButton(cmnd_frame, text="送信", command=self.send_command)
-        self.send_button.pack(side=tk.BOTTOM, pady=2)
-        # 値入力
-        self.input_text = tk.Entry(cmnd_frame, highlightthickness=0, font=(gc.COMMON_FONT, gc.COMMON_FONT_SIZE))
-        self.input_text.pack(side=tk.BOTTOM, pady=2)
+        # 指定アドレスと接続テストフレーム
+        connection_test_frame = ModernLabelframe(self.master, text="指定アドレスと接続テスト")
+        # テスト開始ボタン
+        self.test_start_button = ModernButton(connection_test_frame, text="テスト開始", command=self.start_test)
+        # テスト中断ボタン
+        self.test_cancel_button = ModernButton(connection_test_frame, text="テスト中断", command=self.cancel_test, state="disabled")
+        # 部品配置
+        self.test_start_button.pack(side=tk.LEFT, padx=(0, 5))
+        self.test_cancel_button.pack(side=tk.LEFT, padx=(0, 5))
+
+        # コマンド種別指定
+        select_command_frame = ModernLabelframe(self.master, text="コマンド種別指定")
         # タイプ設定
-        type_frame = tk.Frame(cmnd_frame)
-        type_label = tk.Label(type_frame, text="Type")
+        type_frame = ModernLabelframe(select_command_frame, text="Type1")
         self.type_var = tk.StringVar()
         self.type_combo = ModernCombobox(type_frame, state="readonly", width=5, textvariable=self.type_var, values=[f"{i:02X}" for i in range(16)])
         self.type_combo.current(0)
-        type_label.pack(side=tk.TOP)
-        self.type_combo.pack(side=tk.BOTTOM)
-        type_frame.pack(side=tk.LEFT, padx=(0, 5))
+        self.type_combo.pack()
+        type_frame.pack(side=tk.LEFT, padx=5)
         # タイプ設定2
-        type_frame2 = tk.Frame(cmnd_frame)
-        type_label2 = tk.Label(type_frame2, text="Type2")
+        type_frame2 = ModernLabelframe(select_command_frame, text="Type2")
         self.type_var2 = tk.StringVar()
         self.type_combo2 = ModernCombobox(type_frame2, state="readonly", width=5, textvariable=self.type_var2, values=[f"{i:02X}" for i in range(32)])
         self.type_combo2.current(0)
-        type_label2.pack(side=tk.TOP)
-        self.type_combo2.pack(side=tk.BOTTOM)
+        self.type_combo2.pack()
         type_frame2.pack(side=tk.LEFT, padx=(0, 5))
-        # 種別設定
-        get_set_frame = tk.Frame(cmnd_frame)
-        get_set_label = tk.Label(get_set_frame, text="get_set")
+        # 種別設定1
+        get_set_frame = ModernLabelframe(select_command_frame, text="gs1")
         self.get_set_var = tk.StringVar()
         self.get_set_combo = ModernCombobox(get_set_frame, state="readonly", width=5, textvariable=self.get_set_var, values=["get", "set"])
         self.get_set_combo.current(0)
-        get_set_label.pack(side=tk.TOP)
-        self.get_set_combo.pack(side=tk.BOTTOM)
+        self.get_set_combo.pack()
         get_set_frame.pack(side=tk.LEFT, padx=(0, 5))
         # 種別設定2
-        get_set_frame2 = tk.Frame(cmnd_frame)
-        get_set_label2 = tk.Label(get_set_frame2, text="get_set2")
+        get_set_frame2 = ModernLabelframe(select_command_frame, text="gs2")
         self.get_set_var2 = tk.StringVar()
         self.get_set_combo2 = ModernCombobox(get_set_frame2, state="readonly", width=5, textvariable=self.get_set_var2, values=["get2", "set2"])
         self.get_set_combo2.current(0)
-        get_set_label2.pack(side=tk.TOP)
-        self.get_set_combo2.pack(side=tk.BOTTOM)
+        self.get_set_combo2.pack()
         get_set_frame2.pack(side=tk.LEFT, padx=(0, 5))
+        # 種別設定3
+        get_set_frame3 = ModernLabelframe(select_command_frame, text="gs3")
+        self.get_set_var3 = tk.StringVar()
+        self.get_set_combo3 = ModernCombobox(get_set_frame3, state="readonly", width=5, textvariable=self.get_set_var3, values=["A", "B", "C", "D"])
+        self.get_set_combo3.current(0)
+        self.get_set_combo3.pack()
+        get_set_frame3.pack(side=tk.LEFT, padx=(0, 5))
+
+        # 指定アドレスへ送信フレーム
+        send_command_frame = ModernLabelframe(self.master, text="指定アドレスへ送信")
+        # 値入力
+        self.input_text = ttk.Entry(send_command_frame, font=(gc.COMMON_FONT, gc.COMMON_FONT_SIZE))
+        # 送信ボタン
+        self.send_button = ModernButton(send_command_frame, text="送信", command=self.send_command)
+        # 部品配置
+        self.input_text.pack(side=tk.TOP, pady=2)
+        self.send_button.pack(side=tk.LEFT, pady=2)
 
         # プログレスバーの追加
         progress_frame = tk.Frame(self.master)
@@ -132,7 +136,9 @@ class OperationPanel:
         # ウィジェットの配置
         scan_button_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
         bdadrs_setting_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
-        ble_sim_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
+        connection_test_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
+        select_command_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
+        send_command_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
         progress_frame.pack(side=tk.BOTTOM, expand=True, fill=tk.X, padx=5, pady=5)
 
     # BDアドレス管理
@@ -209,24 +215,24 @@ class OperationPanel:
     def reset_buttons(self) -> None:
         self.scan_button.config(state="normal")
         self.stop_button.config(state="disabled")
-        self.cnct_test_button.config(state="normal")
-        self.cnct_cancel_button.config(state="disabled")
+        self.test_start_button.config(state="normal")
+        self.test_cancel_button.config(state="disabled")
         self.send_button.config(state="normal")
 
     def disable_buttons(self) -> None:
         self.scan_button.config(state="disabled")
-        self.cnct_test_button.config(state="disabled")
+        self.test_start_button.config(state="disabled")
         self.send_button.config(state="disabled")
 
     # 接続テスト
-    def start_cnct_test(self) -> None:
+    def start_test(self) -> None:
         if (self.connection_task is None) or (self.connection_task.done()):
             self.disable_buttons()
-            self.cnct_cancel_button.config(state="normal")
+            self.test_cancel_button.config(state="normal")
             self.start_progress()
             self.connection_task = asyncio.run_coroutine_threadsafe(self.connection_test(), self.loop)
 
-    def cancel_cnct_test(self) -> None:
+    def cancel_test(self) -> None:
         if (self.connection_task is not None) and (not self.connection_task.done()):
             self.connection_task.cancel()
             self.master.after(0, self.reset_buttons)

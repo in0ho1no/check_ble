@@ -41,7 +41,7 @@ class ModernLabelframe(ttk.Labelframe):
         # ボタンのデフォルトスタイルの設定
         style.configure(
             cls.STYLE_ID,
-            padding=5,  # 内側のパディング
+            padding=2,  # 内側のパディング
             borderwidth=0,
         )
         style.configure(

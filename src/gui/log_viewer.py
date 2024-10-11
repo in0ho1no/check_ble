@@ -27,26 +27,30 @@ class LogViewer:
     def setup_ui(self) -> None:
         # メインフレームの作成
         self.main_frame = ttk.Frame(self.master)
-
         # Treeviewの設定
         self.tree = ModernTreeview(self.main_frame, columns=("No", "Timestamp", "Type", "Log"), show="headings")
         self.setup_tree_columns()
-
         # スクロールバーの追加
         self.scrollbar = ModernScrollbar(self.main_frame, orient=tk.VERTICAL, command=self.tree.yview)
         self.scrollbar.config(command=self.custom_scroll)
         self.tree.configure(yscrollcommand=self.scrollbar.set)
+        # 部品配置
+        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
 
         # オプション用フレームの作成
         self.option_frame = ttk.Frame(self.master)
-
         # ログクリアボタン
         self.clear_button = ModernButton(self.option_frame, text="ログクリア", command=self.clear_log)
-
         # 自動スクロールのチェックボックス
         self.auto_scroll_check = ModernCheckbutton(self.option_frame, text="自動スクロール", variable=self.auto_scroll)
+        # 部品配置
+        self.clear_button.pack(side=tk.LEFT, padx=5, pady=5)
+        self.auto_scroll_check.pack(side=tk.RIGHT, padx=5, pady=5)
 
-        self.pack_widgets()
+        # ウィジェットの配置
+        self.main_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, pady=5)
+        self.option_frame.pack(side=tk.BOTTOM, expand=False, fill=tk.X, padx=5)
 
     def setup_tree_columns(self) -> None:
         # 列の設定
@@ -62,17 +66,6 @@ class LogViewer:
         # 背景色の交互設定
         self.tree.tag_configure("odd", background="#E8E8E8")
         self.tree.tag_configure("even", background="#FFFFFF")
-
-    def pack_widgets(self) -> None:
-        # ログ表示部分の配置
-        self.main_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=10)
-        self.tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
-        self.scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-        # ボタン部分の配置
-        self.option_frame.pack(side=tk.BOTTOM, expand=True, fill=tk.BOTH, padx=5)
-        self.clear_button.pack(side=tk.LEFT, padx=5, pady=5)
-        self.auto_scroll_check.pack(side=tk.RIGHT, padx=5, pady=5)
 
     def add_log(self, type: str, log: str) -> None:
         self.master.after(0, self._add_log, type, log)
