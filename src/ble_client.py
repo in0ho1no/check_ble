@@ -37,7 +37,7 @@ class BleClient:
     def stop_scanner(self) -> None:
         self.scanning = False
 
-    async def test_client(self, bd_addr: str) -> bool:
+    async def test_client(self, bd_addr: str) -> None:
         """指定されたBDアドレスのデバイスと接続する
 
         Args:
@@ -65,16 +65,13 @@ class BleClient:
 
                 print("Diconnect...")
                 await client.disconnect()
-            return True
+            self.log_viewer.add_log("情報", "接続に成功しました。")
         except asyncio.exceptions.CancelledError:
-            print("タスク中断")
-            return False
-        except asyncio.exceptions.TimeoutError:
-            print("タスクタイムアウト")
-            return False
+            self.log_viewer.add_log("情報", "接続を中断しました。")
+        except asyncio.exceptions.TimeoutError as e:
+            self.log_viewer.add_log("エラー", f"接続に失敗しました。タイムアウト: {e}")
         except BleakError as e:
-            print(f"BleakError: {e}")
-            return False
+            self.log_viewer.add_log("エラー", f"接続に失敗しました。BleakError: {e}")
 
     def show_client_info(self, client_r: BleakClient) -> None:
         """接続先から取得できる情報を表示する

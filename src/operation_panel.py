@@ -1,4 +1,5 @@
 import asyncio
+import concurrent.futures
 import threading
 import tkinter as tk
 from tkinter import ttk
@@ -23,6 +24,7 @@ class OperationPanel:
         self.master.geometry(f"+{gc.POS_MAIN_X}+{gc.POS_MAIN_Y}")
 
         # 非同期ループのためのイベントループ
+        self.connection_task: None | concurrent.futures.Future = None
         self.loop = asyncio.new_event_loop()
         self.thread = threading.Thread(target=self.run_async_loop, daemon=True)
         self.thread.start()
@@ -36,6 +38,10 @@ class OperationPanel:
 
         self.setup_ui()
         self.load_addresses(0)
+
+    def run_async_loop(self) -> None:
+        asyncio.set_event_loop(self.loop)
+        self.loop.run_forever()
 
     def setup_ui(self) -> None:
         # ボタンフレームの作成
@@ -68,12 +74,14 @@ class OperationPanel:
         cnct_test_frame = tk.Frame(ble_sim_frame)
         self.cnct_test_button = ModernButton(cnct_test_frame, text="接続テスト", command=self.start_cnct_test)
         self.cnct_test_button.pack(side=tk.LEFT)
+        self.cnct_cancel_button = ModernButton(cnct_test_frame, text="中断", command=self.cancel_cnct_test, state="disabled")
+        self.cnct_cancel_button.pack(side=tk.LEFT)
         cnct_test_frame.pack(side=tk.TOP, padx=1, pady=5, fill=tk.X)
         # コマンド設定
         cmnd_frame = tk.Frame(ble_sim_frame)
         cmnd_frame.pack(side=tk.BOTTOM, expand=True, fill=tk.BOTH, padx=1, pady=5)
         # 送信ボタン
-        self.send_button = ModernButton(cmnd_frame, text="接続", command=self.send_command)
+        self.send_button = ModernButton(cmnd_frame, text="送信", command=self.send_command)
         self.send_button.pack(side=tk.BOTTOM, pady=2)
         # 値入力
         self.input_text = tk.Entry(cmnd_frame, highlightthickness=0, font=(gc.COMMON_FONT, gc.COMMON_FONT_SIZE))
@@ -127,6 +135,7 @@ class OperationPanel:
         ble_sim_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
         progress_frame.pack(side=tk.BOTTOM, expand=True, fill=tk.X, padx=5, pady=5)
 
+    # BDアドレス管理
     def load_addresses(self, pos: int) -> None:
         addresses = self.sim_setting.get_bd_adrs()
         self.address_combo["values"] = addresses
@@ -161,10 +170,7 @@ class OperationPanel:
         else:
             self.log_viewer.add_log("エラー", "BDアドレスの削除に失敗しました。")
 
-    def run_async_loop(self) -> None:
-        asyncio.set_event_loop(self.loop)
-        self.loop.run_forever()
-
+    # スキャン
     def start_scan(self) -> None:
         self.disable_buttons()
         self.stop_button.config(state="normal")
@@ -182,6 +188,7 @@ class OperationPanel:
         self.master.after(0, self.reset_buttons)
         self.master.after(0, self.stop_progress)
 
+    # プログレスバー
     def start_progress(self) -> None:
         self.progress_running = True
         self.progress_value = 0
@@ -198,20 +205,32 @@ class OperationPanel:
             self.progress_bar["value"] = self.progress_value
             self.master.after(50, self.update_progress)
 
+    # ボタン状態
     def reset_buttons(self) -> None:
         self.scan_button.config(state="normal")
         self.stop_button.config(state="disabled")
         self.cnct_test_button.config(state="normal")
-        self.stop_progress()
+        self.cnct_cancel_button.config(state="disabled")
+        self.send_button.config(state="normal")
 
     def disable_buttons(self) -> None:
         self.scan_button.config(state="disabled")
         self.cnct_test_button.config(state="disabled")
+        self.send_button.config(state="disabled")
 
+    # 接続テスト
     def start_cnct_test(self) -> None:
-        self.disable_buttons()
-        self.start_progress()
-        asyncio.run_coroutine_threadsafe(self.connection_test(), self.loop)
+        if (self.connection_task is None) or (self.connection_task.done()):
+            self.disable_buttons()
+            self.cnct_cancel_button.config(state="normal")
+            self.start_progress()
+            self.connection_task = asyncio.run_coroutine_threadsafe(self.connection_test(), self.loop)
+
+    def cancel_cnct_test(self) -> None:
+        if (self.connection_task is not None) and (not self.connection_task.done()):
+            self.connection_task.cancel()
+            self.master.after(0, self.reset_buttons)
+            self.master.after(0, self.stop_progress)
 
     async def connection_test(self) -> None:
         bd_adrs = self.address_combo.get()
@@ -220,16 +239,15 @@ class OperationPanel:
 
         # 対象と接続
         self.log_viewer.add_log("情報", f"{bd_adrs}との接続テストを開始します。")
-        result = await self.ble_client.test_client(bd_adrs)
-        if result is True:
-            self.log_viewer.add_log("情報", "接続に成功しました。")
-        else:
-            self.log_viewer.add_log("エラー", "接続に失敗しました。")
+        await self.ble_client.test_client(bd_adrs)
+        self.log_viewer.add_log("情報", f"{bd_adrs}との接続テストを終了します。")
 
         self.master.after(0, self.reset_buttons)
         self.master.after(0, self.stop_progress)
 
+    # 送信
     def send_command(self) -> None:
         self.log_viewer.add_log(
-            "情報", f"{self.type_combo.get()},{self.type_combo2.get()},{self.get_set_combo.get()},{self.get_set_combo2.get()},{self.input_text.get()}"
+            "情報",
+            f"{self.type_combo.get()},{self.type_combo2.get()},{self.get_set_combo.get()},{self.get_set_combo2.current()},{self.input_text.get()}",
         )
