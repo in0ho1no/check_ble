@@ -7,6 +7,7 @@ from tkinter import ttk
 import gui.gui_common as gc
 from ble_client import BleClient
 from gui.log_viewer import LogViewer
+from gui.parts_hexinput import HexInputWidget
 from gui.parts_modern_button import ModernButton
 from gui.parts_modern_combobox import ModernCombobox
 from gui.parts_modern_label_frame import ModernLabelframe
@@ -118,13 +119,16 @@ class OperationPanel:
         self.get_set_combo3.grid(row=1, column=4)
 
         # 指定アドレスへ送信フレーム
-        send_command_frame = ModernLabelframe(self.master, text="指定アドレスへ送信")
+        send_command_frame = ModernLabelframe(self.master, text="データ設定")
         # 値入力
-        self.input_text = ttk.Entry(send_command_frame, font=(gc.COMMON_FONT, gc.COMMON_FONT_SIZE))
+        self.command_form = HexInputWidget(send_command_frame, num_columns=15, title_prefix="C")
+        # 確認ボタン
+        self.check_button = ModernButton(send_command_frame, text="確認", command=self.check_command)
         # 送信ボタン
         self.send_button = ModernButton(send_command_frame, text="送信", command=self.send_command)
         # 部品配置
-        self.input_text.pack(side=tk.TOP, pady=2)
+        self.command_form.pack(side=tk.TOP, pady=2)
+        self.check_button.pack(side=tk.LEFT, padx=(0, 5), pady=2)
         self.send_button.pack(side=tk.LEFT, pady=2)
 
         # プログレスバーの追加
@@ -252,8 +256,10 @@ class OperationPanel:
         self.master.after(0, self.stop_progress)
 
     # 送信
+    def check_command(self) -> None:
+        type_setting = f"{self.type_combo1.get()},{self.type_combo2.get()},{self.get_set_combo1.get()},{self.get_set_combo2.current()},{self.get_set_combo3.current()}"
+        data_setting = ",".join(self.command_form.get_values())
+        self.log_viewer.add_log("情報", f"{type_setting}, {data_setting}")
+
     def send_command(self) -> None:
-        self.log_viewer.add_log(
-            "情報",
-            f"{self.type_combo1.get()},{self.type_combo2.get()},{self.get_set_combo1.get()},{self.get_set_combo2.current()},{self.input_text.get()}",
-        )
+        self.log_viewer.add_log("情報", "送信は未対応")
