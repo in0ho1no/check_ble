@@ -80,42 +80,42 @@ class OperationPanel:
         self.test_cancel_button.pack(side=tk.LEFT, padx=(0, 5))
 
         # コマンド種別指定
-        select_command_frame = ModernLabelframe(self.master, text="コマンド種別指定")
+        type_frame = ModernLabelframe(self.master, text="コマンド種別指定")
         # タイプ設定
-        type_frame = ModernLabelframe(select_command_frame, text="Type1")
-        self.type_var = tk.StringVar()
-        self.type_combo = ModernCombobox(type_frame, state="readonly", width=5, textvariable=self.type_var, values=[f"{i:02X}" for i in range(16)])
-        self.type_combo.current(0)
-        self.type_combo.pack()
-        type_frame.pack(side=tk.LEFT, padx=5)
+        type_label1 = ttk.Label(type_frame, text="Type1", font=(gc.COMMON_FONT, gc.COMMON_FONT_SIZE))
+        self.type_var1 = tk.StringVar()
+        self.type_combo1 = ModernCombobox(type_frame, state="readonly", width=5, textvariable=self.type_var1, values=[f"{i:02X}" for i in range(16)])
+        self.type_combo1.current(0)
+        type_label1.grid(row=0, column=0)
+        self.type_combo1.grid(row=1, column=0)
         # タイプ設定2
-        type_frame2 = ModernLabelframe(select_command_frame, text="Type2")
+        type_label2 = ttk.Label(type_frame, text="Type2", font=(gc.COMMON_FONT, gc.COMMON_FONT_SIZE))
         self.type_var2 = tk.StringVar()
-        self.type_combo2 = ModernCombobox(type_frame2, state="readonly", width=5, textvariable=self.type_var2, values=[f"{i:02X}" for i in range(32)])
+        self.type_combo2 = ModernCombobox(type_frame, state="readonly", width=5, textvariable=self.type_var2, values=[f"{i:02X}" for i in range(32)])
         self.type_combo2.current(0)
-        self.type_combo2.pack()
-        type_frame2.pack(side=tk.LEFT, padx=(0, 5))
+        type_label2.grid(row=0, column=1)
+        self.type_combo2.grid(row=1, column=1)
         # 種別設定1
-        get_set_frame = ModernLabelframe(select_command_frame, text="gs1")
-        self.get_set_var = tk.StringVar()
-        self.get_set_combo = ModernCombobox(get_set_frame, state="readonly", width=5, textvariable=self.get_set_var, values=["get", "set"])
-        self.get_set_combo.current(0)
-        self.get_set_combo.pack()
-        get_set_frame.pack(side=tk.LEFT, padx=(0, 5))
+        get_set_label1 = ttk.Label(type_frame, text="gs1", font=(gc.COMMON_FONT, gc.COMMON_FONT_SIZE))
+        self.get_set_var1 = tk.StringVar()
+        self.get_set_combo1 = ModernCombobox(type_frame, state="readonly", width=5, textvariable=self.get_set_var1, values=["get", "set"])
+        self.get_set_combo1.current(0)
+        get_set_label1.grid(row=0, column=2)
+        self.get_set_combo1.grid(row=1, column=2)
         # 種別設定2
-        get_set_frame2 = ModernLabelframe(select_command_frame, text="gs2")
+        get_set_label2 = ttk.Label(type_frame, text="gs2", font=(gc.COMMON_FONT, gc.COMMON_FONT_SIZE))
         self.get_set_var2 = tk.StringVar()
-        self.get_set_combo2 = ModernCombobox(get_set_frame2, state="readonly", width=5, textvariable=self.get_set_var2, values=["get2", "set2"])
+        self.get_set_combo2 = ModernCombobox(type_frame, state="readonly", width=5, textvariable=self.get_set_var2, values=["get2", "set2"])
         self.get_set_combo2.current(0)
-        self.get_set_combo2.pack()
-        get_set_frame2.pack(side=tk.LEFT, padx=(0, 5))
+        get_set_label2.grid(row=0, column=3)
+        self.get_set_combo2.grid(row=1, column=3)
         # 種別設定3
-        get_set_frame3 = ModernLabelframe(select_command_frame, text="gs3")
+        get_set_label3 = ttk.Label(type_frame, text="gs3", font=(gc.COMMON_FONT, gc.COMMON_FONT_SIZE))
         self.get_set_var3 = tk.StringVar()
-        self.get_set_combo3 = ModernCombobox(get_set_frame3, state="readonly", width=5, textvariable=self.get_set_var3, values=["A", "B", "C", "D"])
+        self.get_set_combo3 = ModernCombobox(type_frame, state="readonly", width=5, textvariable=self.get_set_var3, values=["A", "B", "C", "D"])
         self.get_set_combo3.current(0)
-        self.get_set_combo3.pack()
-        get_set_frame3.pack(side=tk.LEFT, padx=(0, 5))
+        get_set_label3.grid(row=0, column=4)
+        self.get_set_combo3.grid(row=1, column=4)
 
         # 指定アドレスへ送信フレーム
         send_command_frame = ModernLabelframe(self.master, text="指定アドレスへ送信")
@@ -137,7 +137,7 @@ class OperationPanel:
         scan_button_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
         bdadrs_setting_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
         connection_test_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
-        select_command_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
+        type_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
         send_command_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=10, pady=5)
         progress_frame.pack(side=tk.BOTTOM, expand=True, fill=tk.X, padx=5, pady=5)
 
@@ -255,5 +255,5 @@ class OperationPanel:
     def send_command(self) -> None:
         self.log_viewer.add_log(
             "情報",
-            f"{self.type_combo.get()},{self.type_combo2.get()},{self.get_set_combo.get()},{self.get_set_combo2.current()},{self.input_text.get()}",
+            f"{self.type_combo1.get()},{self.type_combo2.get()},{self.get_set_combo1.get()},{self.get_set_combo2.current()},{self.input_text.get()}",
         )
