@@ -76,9 +76,12 @@ class OperationPanel:
         self.test_start_button = ModernButton(connection_test_frame, text="テスト開始", command=self.start_test)
         # テスト中断ボタン
         self.test_cancel_button = ModernButton(connection_test_frame, text="テスト中断", command=self.cancel_test, state="disabled")
+        # データ読出ボタン
+        self.read_data_button = ModernButton(connection_test_frame, text="データ読出", command=self.start_read_data)
         # 部品配置
         self.test_start_button.pack(side=tk.LEFT, padx=(0, 5))
         self.test_cancel_button.pack(side=tk.LEFT, padx=(0, 5))
+        self.read_data_button.pack(side=tk.LEFT, padx=(0, 5))
 
         # コマンド種別指定
         type_frame = ModernLabelframe(self.master, text="コマンド種別指定")
@@ -221,11 +224,13 @@ class OperationPanel:
         self.stop_button.config(state="disabled")
         self.test_start_button.config(state="normal")
         self.test_cancel_button.config(state="disabled")
+        self.read_data_button.config(state="normal")
         self.send_button.config(state="normal")
 
     def disable_buttons(self) -> None:
         self.scan_button.config(state="disabled")
         self.test_start_button.config(state="disabled")
+        self.read_data_button.config(state="disabled")
         self.send_button.config(state="disabled")
 
     # 接続テスト
@@ -251,6 +256,26 @@ class OperationPanel:
         self.log_viewer.add_log("情報", f"{bd_adrs}との接続テストを開始します。")
         await self.ble_client.test_client(bd_adrs)
         self.log_viewer.add_log("情報", f"{bd_adrs}との接続テストを終了します。")
+
+        self.master.after(0, self.reset_buttons)
+        self.master.after(0, self.stop_progress)
+
+    def start_read_data(self) -> None:
+        if (self.connection_task is None) or (self.connection_task.done()):
+            self.disable_buttons()
+            self.test_cancel_button.config(state="normal")
+            self.start_progress()
+            self.connection_task = asyncio.run_coroutine_threadsafe(self.read_data(), self.loop)
+
+    async def read_data(self) -> None:
+        bd_adrs = self.address_combo.get()
+        if bd_adrs is None:
+            return False
+
+        # 対象と接続
+        self.log_viewer.add_log("情報", f"{bd_adrs}からの情報取得を開始します。")
+        await self.ble_client.read_client_data(bd_adrs)
+        self.log_viewer.add_log("情報", f"{bd_adrs}からの情報取得を終了します。")
 
         self.master.after(0, self.reset_buttons)
         self.master.after(0, self.stop_progress)
