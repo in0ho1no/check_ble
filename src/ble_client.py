@@ -10,7 +10,7 @@ class BleClient:
         self.log_viewer = log_viewer
         self.scanning = False
 
-    async def advertise_scanner(self) -> None:
+    async def advertise_scanner(self, scan_time: int = 100) -> None:
         self.scanning = True
         self.log_viewer.add_log("情報", "スキャンを開始しました...")
 
@@ -19,19 +19,25 @@ class BleClient:
 
         try:
             async with scanner:
-                n = 5
+                start_time = asyncio.get_event_loop().time()
                 while self.scanning:
                     devices = await scanner.discover(timeout=1.0)
                     for device in devices:
                         if device.address not in bd_adrs_list:
                             bd_adrs_list.append(device.address)
 
-                            found = len(device.name or "") > n
-                            log_message = f" Found{' it' if found else ''} {device!r}"
+                            log_message = f"Found device: {device!r}"
                             self.log_viewer.add_log("スキャン", log_message)
+
+                    now_time = asyncio.get_event_loop().time()
+                    if (now_time - start_time) > scan_time:
+                        self.log_viewer.add_log("情報", f"{scan_time}秒経過したのでスキャンを終了します。")
+                        break
+
         except Exception as e:
             self.log_viewer.add_log("エラー", f"スキャン中にエラーが発生しました: {str(e)}")
         finally:
+            self.scanning = False
             self.log_viewer.add_log("情報", "スキャンを停止しました。")
 
     def stop_scanner(self) -> None:
@@ -76,16 +82,16 @@ class BleClient:
             else:
                 self.log_viewer.add_log("エラー", f"接続に失敗しました。BleakError: {e}")
 
-    def show_client_info(self, client_r: BleakClient) -> None:
+    def show_client_info(self, client: BleakClient) -> None:
         """接続先から取得できる情報を表示する
 
         Args:
             client_r (BleakClient): 情報表示したい接続先
         """
-        self.log_viewer.add_log("情報", f"MTU size: {client_r.mtu_size}")
+        self.log_viewer.add_log("情報", f"MTU size: {client.mtu_size}")
 
         # サービスとCharacteristicを表示
-        for service in client_r.services:
+        for service in client.services:
             self.log_viewer.add_log("情報", f"Service: {service.uuid}")
             for char in service.characteristics:
                 self.log_viewer.add_log("情報", f"  Characteristic: {char.uuid}, Handle: {char.handle}")
@@ -123,12 +129,12 @@ class BleClient:
                 # 取得したハンドルから情報を取得する
                 for handle in handle_list:
                     try:
-                        rcv_data = await client.read_gatt_char(handle, use_cached=True)
+                        rcv_data = await client.read_gatt_char(handle)
                         print(rcv_data)
                         self.log_viewer.add_log("情報", f"{handle=}")
-                        self.log_viewer.add_log("情報", f"    生値: {rcv_data}")
-                        self.log_viewer.add_log("情報", f'    ASCII: {"".join(map(chr, rcv_data))}')
-                        self.log_viewer.add_log("情報", f'    16進: {",".join(map(hex, rcv_data))}')
+                        self.log_viewer.add_log("情報", f"    Value: {rcv_data}")
+                        self.log_viewer.add_log("情報", f'    ASCII: {"".join(chr(b) for b in rcv_data if 32 <= b < 127)}')
+                        self.log_viewer.add_log("情報", f'    Hex: {",".join(map(hex, rcv_data))}')
                     except BleakError as e:
                         # 読み出せないハンドルは無視
                         # BleakError: Could not read characteristic handle XXXX: Protocol Error 0x02: Read Not Permitted
