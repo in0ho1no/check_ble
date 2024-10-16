@@ -11,6 +11,7 @@ from gui.parts_hexinput import HexInputWidget
 from gui.parts_modern_button import ModernButton
 from gui.parts_modern_combobox import ModernCombobox
 from gui.parts_modern_label_frame import ModernLabelframe
+from gui.parts_scrollable_frame import ScrollableFrame
 from read_setting import SimSetting
 
 
@@ -124,13 +125,16 @@ class OperationPanel:
         # 指定アドレスへ送信フレーム
         send_command_frame = ModernLabelframe(self.master, text="データ設定")
         # 値入力
-        self.command_form = HexInputWidget(send_command_frame, num_columns=15, title_prefix="C")
+        command_scrollable_frame = ScrollableFrame(send_command_frame, horizontal_scroll=True, vertical_scroll=True)
+        self.command_form = HexInputWidget(command_scrollable_frame.scrolled_frame, num_columns=15, title_prefix="C")
+        self.command_form.pack(fill=tk.BOTH)
+
         # 確認ボタン
         self.check_button = ModernButton(send_command_frame, text="確認", command=self.check_command)
         # 送信ボタン
         self.send_button = ModernButton(send_command_frame, text="送信", command=self.send_command)
         # 部品配置
-        self.command_form.pack(side=tk.TOP, pady=2)
+        command_scrollable_frame.pack(side=tk.TOP, pady=2)
         self.check_button.pack(side=tk.LEFT, padx=(0, 5), pady=2)
         self.send_button.pack(side=tk.LEFT, pady=2)
 
